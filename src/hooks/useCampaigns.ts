@@ -6,6 +6,9 @@ export const useCampaigns = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    fetchCampaigns(); 
+  }, []);
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
@@ -19,9 +22,10 @@ export const useCampaigns = () => {
       // Transform data to match the expected format
       const transformedData = data?.map(campaign => ({
         ...campaign,
-        dmName: 'DM', // Placeholder since we don't have DM name in database
+        dmName: campaign.dmName || 'Default', // Placeholder since we don't have DM name in database
         isActive: campaign.status === 'active',
-        createdAt: campaign.created_at
+        createdAt: campaign.created_at,
+        
       })) || [];
 
       setCampaigns(transformedData);
@@ -39,7 +43,8 @@ export const useCampaigns = () => {
         .insert([{
           name: campaign.name,
           description: campaign.description,
-          status: 'active'
+          status: 'active',
+          dmName: campaign.dmName || 'Default DM' // Default to 'DM' if not provided
         }])
         .select()
         .single();
@@ -49,9 +54,9 @@ export const useCampaigns = () => {
       if (data) {
         const newCampaign = {
           ...data,
-          dmName: 'DM',
+          dmName: data.dmName || 'Default',
           isActive: data.status === 'active',
-          createdAt: data.created_at
+          createdAt: data.created_at,
         };
         setCampaigns(prev => [newCampaign, ...prev]);
       }
@@ -68,7 +73,8 @@ export const useCampaigns = () => {
         .update({
           name: updates.name,
           description: updates.description,
-          status: updates.status
+          status: updates.status,
+          dmName: updates.dmName
         })
         .eq('id', id)
         .select()
@@ -79,7 +85,7 @@ export const useCampaigns = () => {
       if (data) {
         const updatedCampaign = {
           ...data,
-          dmName: 'DM',
+          dmName: data.dmName || 'Default',
           isActive: data.status === 'active',
           createdAt: data.created_at
         };
