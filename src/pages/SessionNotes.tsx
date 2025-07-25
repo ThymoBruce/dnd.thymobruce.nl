@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useSessionNotes } from '../hooks/useSessionNotes';
-import { Plus, ScrollText, Trash2, Calendar } from 'lucide-react';
+import { Plus, ScrollText, Trash2, Calendar, Pencil } from 'lucide-react';
 
 const SessionNotes = () => {
-  const { sessionNotes, addSessionNote, deleteSessionNote, loading, error } = useSessionNotes();
+  const { sessionNotes, addSessionNote, deleteSessionNote, updateSessionNote, loading, error } = useSessionNotes();
   const [isCreating, setIsCreating] = useState(false);
+  const [editingNote, setEditingNote] = useState<any>(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     title: '',
@@ -30,6 +31,27 @@ const SessionNotes = () => {
         setIsCreating(false);
       })
       .catch(err => console.error('Failed to create session note:', err));
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingNote) return;
+    const noteData = {
+      ...formData,
+      participants: formData.participants.split(',').map(p => p.trim()).filter(p => p),
+      is_private: editingNote.is_private ?? true
+    };
+    updateSessionNote(editingNote.id, noteData)
+      .then(() => {
+        setEditingNote(null);
+        setFormData({ 
+          date: new Date().toISOString().split('T')[0], 
+          title: '', 
+          content: '', 
+          participants: '' 
+        });
+      })
+      .catch(err => console.error('Failed to update session note:', err));
   };
 
   const handleDelete = async (id: string) => {
@@ -77,7 +99,16 @@ const SessionNotes = () => {
           <h1 className="text-3xl font-bold">Session Notes</h1>
         </div>
         <button
-          onClick={() => setIsCreating(true)}
+          onClick={() => {
+            setIsCreating(true);
+            setEditingNote(null);
+            setFormData({ 
+              date: new Date().toISOString().split('T')[0], 
+              title: '', 
+              content: '', 
+              participants: '' 
+            });
+          }}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
         >
           <Plus className="h-4 w-4" />
@@ -85,6 +116,92 @@ const SessionNotes = () => {
         </button>
       </div>
 
+      {/* Edit Session Note Form */}
+      {editingNote && (
+        <div className="bg-slate-800 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4">Edit Session Note</h3>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Session Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Session Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g., The Goblin Caves, Episode 1"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Participants (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={formData.participants}
+                onChange={(e) => setFormData(prev => ({ ...prev, participants: e.target.value }))}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Player1, Player2, Player3..."
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Session Summary
+              </label>
+              <textarea
+                value={formData.content}
+                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                rows={8}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="What happened in this session? Key events, discoveries, combat encounters, roleplay moments, etc."
+                required
+              />
+            </div>
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingNote(null);
+                  setFormData({ 
+                    date: new Date().toISOString().split('T')[0], 
+                    title: '', 
+                    content: '', 
+                    participants: '' 
+                  });
+                }}
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Create Session Note Form */}
       {isCreating && (
         <div className="bg-slate-800 rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4">Add New Session Note</h3>
@@ -161,7 +278,7 @@ const SessionNotes = () => {
         </div>
       )}
 
-      {sessionNotes.length === 0 && !isCreating ? (
+      {sessionNotes.length === 0 && !isCreating && !editingNote ? (
         <div className="text-center py-12">
           <ScrollText className="h-16 w-16 text-slate-400 mx-auto mb-4" />
           <p className="text-xl text-slate-300 mb-2">No session notes yet</p>
@@ -188,16 +305,33 @@ const SessionNotes = () => {
                       <span>{formatDate(note.date)}</span>
                     </div>
                     <div>
-                      Participants: {note.participants.join(', ')}
+                      Participants: {Array.isArray(note.participants) ? note.participants.join(', ') : note.participants}
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(note.id)}
-                  className="text-slate-400 hover:text-red-400 transition-colors duration-200"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleDelete(note.id)}
+                    className="text-slate-400 hover:text-red-400 transition-colors duration-200 space-x-1 mr-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingNote(note);
+                      setIsCreating(false);
+                      setFormData({
+                        date: note.date,
+                        title: note.title,
+                        content: note.content,
+                        participants: Array.isArray(note.participants) ? note.participants.join(', ') : note.participants || ''
+                      });
+                    }}
+                    className="text-slate-400 hover:text-blue-400 space-x-1 transition-colors duration-200 flex items-center"
+                  >
+                    <Pencil className="h-4 w-4 mr-1" />
+                  </button>
+                </div>
               </div>
               
               <div className="prose prose-slate prose-invert max-w-none">

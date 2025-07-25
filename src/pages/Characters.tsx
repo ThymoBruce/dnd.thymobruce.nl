@@ -70,13 +70,13 @@ const Characters = () => {
           <h1 className="text-3xl font-bold">Characters</h1>
         </div>
         <div className="flex space-x-3">
-          <button
+          {/* <button
             onClick={() => setIsSelectionOpen(true)}
             className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
           >
             <Eye className="h-4 w-4" />
             <span>Character Selection</span>
-          </button>
+          </button> */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
