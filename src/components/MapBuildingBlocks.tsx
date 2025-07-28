@@ -131,7 +131,7 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
         
         {/* Create Blank Map Button */}
         {onCreateBlankMap && (
-                ? 'border-amber-500 bg-slate-700'
+          <button
             onClick={onCreateBlankMap}
             className="w-full mb-4 bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
           >
