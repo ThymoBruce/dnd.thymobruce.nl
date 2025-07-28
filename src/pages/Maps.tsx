@@ -34,6 +34,8 @@ const Maps = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedBuildingBlock, setSelectedBuildingBlock] = useState<any>(null);
+  const [activeTool, setActiveTool] = useState<'place' | 'erase'>('place');
+  const [hitTestFunction, setHitTestFunction] = useState<((x: number, y: number) => string | null) | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -260,56 +262,53 @@ const Maps = () => {
   };
 
   const handleMapClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasClick = (x: number, y: number) => {
     if (!isEditingMarkers) return;
-    
-    // Handle regular marker placement
-    if (!selectedBuildingBlock) {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
+    if (activeTool === 'erase') {
+      // Handle eraser tool
+      if (hitTestFunction) {
+        const markerId = hitTestFunction(x, y);
+        if (markerId) {
+          setMarkers(prev => prev.filter(m => m.id !== markerId));
+        }
+      }
+    } else if (activeTool === 'place') {
+      // Handle placement tool
+      const xPercent = (x / (viewingMap?.mapWidth || 800)) * 100;
+      const yPercent = (y / (viewingMap?.mapHeight || 600)) * 100;
 
-      const label = prompt('Enter marker label:');
-      if (!label) return;
+      if (selectedBuildingBlock) {
+        // Place building block
+        const newMarker: MapMarker = {
+          id: Date.now().toString(),
+          x: xPercent,
+          y: yPercent,
+          label: `${selectedBuildingBlock.name} (${selectedBuildingBlock.tileSize.width}×${selectedBuildingBlock.tileSize.height})`,
+          type: 'tile',
+          description: selectedBuildingBlock.description,
+          imageUrl: selectedBuildingBlock.imageUrl,
+          tileSize: selectedBuildingBlock.tileSize
+        };
+        setMarkers(prev => [...prev, newMarker]);
+      } else {
+        // Place regular marker
+        const label = prompt('Enter marker label:');
+        if (!label) return;
 
-      const description = prompt('Enter marker description (optional):') || '';
+        const description = prompt('Enter marker description (optional):') || '';
 
-      const newMarker: MapMarker = {
-        id: Date.now().toString(),
-        x,
-        y,
-        label,
-        type: selectedMarkerType,
-        description
-      };
-
-      setMarkers(prev => [...prev, newMarker]);
-      return;
+        const newMarker: MapMarker = {
+          id: Date.now().toString(),
+          x: xPercent,
+          y: yPercent,
+          label,
+          type: selectedMarkerType,
+          description
+        };
+        setMarkers(prev => [...prev, newMarker]);
+      }
     }
-
-    // Handle building block placement
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    const newMarker: MapMarker = {
-      id: Date.now().toString(),
-      x,
-      y,
-      label: `${selectedBuildingBlock.name} (${selectedBuildingBlock.tileSize.width}×${selectedBuildingBlock.tileSize.height})`,
-      type: 'tile',
-      description: selectedBuildingBlock.description,
-      imageUrl: selectedBuildingBlock.imageUrl,
-      tileSize: selectedBuildingBlock.tileSize
-    };
-
-    setMarkers(prev => [...prev, newMarker]);
-    // Keep selection active for multiple placements - user can click elsewhere to deselect
   };
 
   const getMarkerTypeInfo = (type: MapMarker['type']) => {
@@ -364,6 +363,31 @@ const Maps = () => {
               <Grid className="h-4 w-4" />
               <span>Grid</span>
             </button>
+            
+            {/* Tool Selection */}
+            <div className="flex bg-slate-700 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTool('place')}
+                className={`px-3 py-1 rounded text-sm transition-colors duration-200 ${
+                  activeTool === 'place' 
+                    ? 'bg-green-600 text-white' 
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                🖌️ Place
+              </button>
+              <button
+                onClick={() => setActiveTool('erase')}
+                className={`px-3 py-1 rounded text-sm transition-colors duration-200 ${
+                  activeTool === 'erase' 
+                    ? 'bg-red-600 text-white' 
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                🗑️ Erase
+              </button>
+            </div>
+
             {isEditingMarkers ? (
               <>
                 <select
@@ -420,131 +444,19 @@ const Maps = () => {
         <div className={`flex-1 ${showBuildingBlocks ? 'flex' : 'flex items-center justify-center'} min-h-0`}>
           <div className={`${showBuildingBlocks ? 'flex-1 flex items-center justify-center' : 'w-full h-full flex items-center justify-center'}`}>
             <div className="relative max-w-full max-h-full">
-              <canvas
-                ref={canvasRef}
+              <MapCanvas
                 width={viewingMap.mapWidth || 800}
                 height={viewingMap.mapHeight || 600}
-                onClick={handleMapClick}
+                backgroundImage={viewingMap.imageUrl}
+                markers={markers}
+                onCanvasClick={handleCanvasClick}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                className={`max-w-full max-h-full border border-slate-600 ${
-                  isDragOver 
-                    ? 'border-green-500 shadow-lg shadow-green-500/20' 
-                    : 'border-slate-600'
-                } ${isEditingMarkers ? 'cursor-crosshair' : 'cursor-default'}`}
-                style={{
-                  backgroundImage: viewingMap.imageUrl ? `url(${viewingMap.imageUrl})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundColor: '#1e293b'
-                }}
+                showGrid={showGrid}
+                gridSize={viewingMap.gridSize || 50}
+                isEditing={isEditingMarkers}
+                onHitTest={setHitTestFunction}
               />
-              
-              {/* Drop Zone Indicator */}
-              {isDragOver && (
-                <div className="absolute inset-0 bg-green-500/10 border-2 border-green-500 border-dashed rounded-lg flex items-center justify-center pointer-events-none">
-                  <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold">
-                    Drop building block here
-                  </div>
-                </div>
-              )}
-              
-              {/* Markers */}
-              {showMarkers && markers.map(marker => {
-                const typeInfo = getMarkerTypeInfo(marker.type);
-                
-                // Render tile-based markers with images
-                if (marker.type === 'tile' && marker.imageUrl && marker.tileSize) {
-                  const canvasWidth = viewingMap.mapWidth || 800;
-                  const canvasHeight = viewingMap.mapHeight || 600;
-                  const tileWidth = (marker.tileSize.width * (viewingMap.gridSize || 50)) * (canvasWidth / 800);
-                  const tileHeight = (marker.tileSize.height * (viewingMap.gridSize || 50)) * (canvasHeight / 600);
-                  
-                  return (
-                    <div
-                      key={marker.id}
-                      className="absolute group"
-                      style={{
-                        left: `${marker.x}%`,
-                        top: `${marker.y}%`,
-                        width: `${tileWidth}px`,
-                        height: `${tileHeight}px`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    >
-                      <img
-                        src={marker.imageUrl}
-                        alt={marker.label}
-                        className="w-full h-full object-cover border-2 border-amber-500/50 hover:border-amber-400 transition-all duration-200 rounded-sm"
-                        style={{
-                          imageRendering: 'pixelated'
-                        }}
-                      />
-                      
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                        <div className="bg-slate-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap border border-slate-600">
-                          <div className="font-semibold">{marker.label}</div>
-                          {marker.description && (
-                            <div className="text-slate-300 text-xs">{marker.description}</div>
-                          )}
-                          <div className="text-amber-400 text-xs">
-                            {marker.tileSize.width}×{marker.tileSize.height} tiles
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Remove button when editing */}
-                      {isEditingMarkers && (
-                        <button
-                          onClick={() => removeMarker(marker.id)}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors duration-200 z-10"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  );
-                }
-                
-                // Render traditional icon-based markers
-                return (
-                  <div
-                    key={marker.id}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-                    style={{
-                      left: `${marker.x}%`,
-                      top: `${marker.y}%`
-                    }}
-                  >
-                    <div className={`w-6 h-6 rounded-full ${typeInfo.color} flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition-transform duration-200`}>
-                      <span>{typeInfo.icon}</span>
-                    </div>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                      <div className="bg-slate-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap border border-slate-600">
-                        <div className="font-semibold">{marker.label}</div>
-                        {marker.description && (
-                          <div className="text-slate-300 text-xs">{marker.description}</div>
-                        )}
-                        <div className="text-slate-400 text-xs">{typeInfo.label}</div>
-                      </div>
-                    </div>
-
-                    {/* Remove button when editing */}
-                    {isEditingMarkers && (
-                      <button
-                        onClick={() => removeMarker(marker.id)}
-                        className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors duration-200"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
             </div>
           </div>
           
@@ -563,12 +475,17 @@ const Maps = () => {
         {/* Instructions */}
         {isEditingMarkers && (
           <div className="bg-slate-800 p-3 border-t border-slate-700">
-            <p className="text-slate-300 text-sm text-center flex items-center justify-center space-x-4">
-              <span>Click on the map to add a {getMarkerTypeInfo(selectedMarkerType).label.toLowerCase()} marker</span>
+            <div className="text-slate-300 text-sm text-center flex items-center justify-center space-x-4">
+              <span>
+                {activeTool === 'place' 
+                  ? `🖌️ Place Mode: Click to add ${selectedBuildingBlock ? 'tiles' : 'markers'}`
+                  : '🗑️ Erase Mode: Click on elements to remove them'
+                }
+              </span>
               {selectedBuildingBlock && (
                 <span className="text-amber-400">• Selected: {selectedBuildingBlock.name} ({selectedBuildingBlock.tileSize.width}×{selectedBuildingBlock.tileSize.height})</span>
               )}
-            </p>
+            </div>
           </div>
         )}
       </div>

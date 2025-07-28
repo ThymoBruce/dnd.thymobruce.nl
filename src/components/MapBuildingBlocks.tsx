@@ -113,8 +113,8 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
   // Remove the handleMapClick function as it's not needed
 
   const handleDragStart = (e: React.DragEvent<HTMLButtonElement>, block: BuildingBlock) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify(block));
-    e.dataTransfer.effectAllowed = 'copy';
+    // Call the onAddBlock function to set the selected building block
+    onAddBlock(block);
   };
   if (!isActive) return null;
 
