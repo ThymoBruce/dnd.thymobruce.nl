@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Grid, Mountain, Trees, Home, Castle, Waves, Skull, Flame, Shield, Gem, Swords, Church, Tent, Anchor, Pickaxe, Eye, Zap, Snowflake, Sun } from 'lucide-react';
+import { Plus, Grid, Mountain, Trees, Home, Castle, Waves, Skull, Flame, Shield, Gem, Swords, Church, Tent, Anchor, Pickaxe, Eye, Zap, Snowflake, Sun, ScrollText } from 'lucide-react';
 
 interface BuildingBlock {
   id: string;
