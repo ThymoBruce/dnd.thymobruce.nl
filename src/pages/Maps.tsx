@@ -228,11 +228,11 @@ const Maps = () => {
 
   const handleSelectBuildingBlockFromPanel = (block: any) => {
     if (!isEditingMarkers) {
-      alert('Please enter edit mode first by clicking "Edit Markers"');
+      alert('Please enter edit mode first by clicking "Edit Markers" to place map tiles');
       return;
     }
     
-    // Set the selected block for click placement
+    // Set the selected tile for click placement
     setSelectedBuildingBlock(block);
   };
 
@@ -278,13 +278,13 @@ const Maps = () => {
       id: Date.now().toString(),
       x,
       y,
-      label: selectedBuildingBlock.name,
+      label: `${selectedBuildingBlock.name} (${selectedBuildingBlock.tileSize.width}×${selectedBuildingBlock.tileSize.height})`,
       type: 'poi',
       description: selectedBuildingBlock.description
     };
 
     setMarkers(prev => [...prev, newMarker]);
-    setSelectedBuildingBlock(null); // Clear selection after placement
+    // Keep selection active for multiple placements - user can click elsewhere to deselect
   };
 
   const getMarkerTypeInfo = (type: MapMarker['type']) => {
@@ -370,8 +370,8 @@ const Maps = () => {
                 showBuildingBlocks ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-600 hover:bg-slate-700'
               } text-white`}
             >
-              <MapPin className="h-4 w-4" />
-              <span>Building Blocks</span>
+              <Grid className="h-4 w-4" />
+              <span>Map Tiles</span>
             </button>
             <button
               onClick={() => setViewingMap(null)}
@@ -473,8 +473,11 @@ const Maps = () => {
         {/* Instructions */}
         {isEditingMarkers && (
           <div className="bg-slate-800 p-3 border-t border-slate-700">
-            <p className="text-slate-300 text-sm text-center">
-              Click on the map to add a {getMarkerTypeInfo(selectedMarkerType).label.toLowerCase()} marker
+            <p className="text-slate-300 text-sm text-center flex items-center justify-center space-x-4">
+              <span>Click on the map to add a {getMarkerTypeInfo(selectedMarkerType).label.toLowerCase()} marker</span>
+              {selectedBuildingBlock && (
+                <span className="text-amber-400">• Selected: {selectedBuildingBlock.name} ({selectedBuildingBlock.tileSize.width}×{selectedBuildingBlock.tileSize.height})</span>
+              )}
             </p>
           </div>
         )}
