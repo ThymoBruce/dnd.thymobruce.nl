@@ -270,13 +270,25 @@ const Maps = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-      label: selectedBuildingBlock.name,
+    const rect = canvas.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
-      description: selectedBuildingBlock.description
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    
-    return markerTypes.find(t => t.type === type) || markerTypes[0];
+    const newMarker: MapMarker = {
+      id: Date.now().toString(),
+      x,
+      y,
+      label: selectedBuildingBlock.name,
+      type: 'poi',
+      description: selectedBuildingBlock.description
+    };
+
+    setMarkers(prev => [...prev, newMarker]);
     setSelectedBuildingBlock(null); // Clear selection after placement
+  };
+
+  const getMarkerTypeInfo = (type: MapMarker['type']) => {
+    return markerTypes.find(t => t.type === type) || markerTypes[0];
   };
 
   if (loading) {
