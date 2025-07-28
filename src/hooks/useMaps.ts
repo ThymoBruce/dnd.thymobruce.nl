@@ -8,6 +8,8 @@ interface MapMarker {
   label: string;
   type: 'location' | 'poi' | 'danger' | 'treasure' | 'npc';
   description?: string;
+  imageUrl?: string;
+  tileSize?: { width: number; height: number };
 }
 
 interface GameMap {
