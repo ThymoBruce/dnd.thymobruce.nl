@@ -37,6 +37,8 @@ export const useAuth = () => {
     
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return { data, error };
     } else {
       // Create user profile
       if (data.user) {
@@ -51,6 +53,8 @@ export const useAuth = () => {
         
         if (profileError) {
           setError(profileError.message);
+          setLoading(false);
+          return { data, error: profileError };
         }
       }
     }
