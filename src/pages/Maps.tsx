@@ -262,53 +262,54 @@ const Maps = () => {
   };
 
   const handleMapClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-  const handleCanvasClick = (x: number, y: number) => {
-    if (!isEditingMarkers) return;
+    const handleCanvasClick = (x: number, y: number) => {
+      if (!isEditingMarkers) return;
 
-    if (activeTool === 'erase') {
-      // Handle eraser tool
-      if (hitTestFunction) {
-        const markerId = hitTestFunction(x, y);
-        if (markerId) {
-          setMarkers(prev => prev.filter(m => m.id !== markerId));
+      if (activeTool === 'erase') {
+        // Handle eraser tool
+        if (hitTestFunction) {
+          const markerId = hitTestFunction(x, y);
+          if (markerId) {
+            setMarkers(prev => prev.filter(m => m.id !== markerId));
+          }
+        }
+      } else if (activeTool === 'place') {
+        // Handle placement tool
+        const xPercent = (x / (viewingMap?.mapWidth || 800)) * 100;
+        const yPercent = (y / (viewingMap?.mapHeight || 600)) * 100;
+
+        if (selectedBuildingBlock) {
+          // Place building block
+          const newMarker: MapMarker = {
+            id: Date.now().toString(),
+            x: xPercent,
+            y: yPercent,
+            label: `${selectedBuildingBlock.name} (${selectedBuildingBlock.tileSize.width}×${selectedBuildingBlock.tileSize.height})`,
+            type: 'tile',
+            description: selectedBuildingBlock.description,
+            imageUrl: selectedBuildingBlock.imageUrl,
+            tileSize: selectedBuildingBlock.tileSize
+          };
+          setMarkers(prev => [...prev, newMarker]);
+        } else {
+          // Place regular marker
+          const label = prompt('Enter marker label:');
+          if (!label) return;
+
+          const description = prompt('Enter marker description (optional):') || '';
+
+          const newMarker: MapMarker = {
+            id: Date.now().toString(),
+            x: xPercent,
+            y: yPercent,
+            label,
+            type: selectedMarkerType,
+            description
+          };
+          setMarkers(prev => [...prev, newMarker]);
         }
       }
-    } else if (activeTool === 'place') {
-      // Handle placement tool
-      const xPercent = (x / (viewingMap?.mapWidth || 800)) * 100;
-      const yPercent = (y / (viewingMap?.mapHeight || 600)) * 100;
-
-      if (selectedBuildingBlock) {
-        // Place building block
-        const newMarker: MapMarker = {
-          id: Date.now().toString(),
-          x: xPercent,
-          y: yPercent,
-          label: `${selectedBuildingBlock.name} (${selectedBuildingBlock.tileSize.width}×${selectedBuildingBlock.tileSize.height})`,
-          type: 'tile',
-          description: selectedBuildingBlock.description,
-          imageUrl: selectedBuildingBlock.imageUrl,
-          tileSize: selectedBuildingBlock.tileSize
-        };
-        setMarkers(prev => [...prev, newMarker]);
-      } else {
-        // Place regular marker
-        const label = prompt('Enter marker label:');
-        if (!label) return;
-
-        const description = prompt('Enter marker description (optional):') || '';
-
-        const newMarker: MapMarker = {
-          id: Date.now().toString(),
-          x: xPercent,
-          y: yPercent,
-          label,
-          type: selectedMarkerType,
-          description
-        };
-        setMarkers(prev => [...prev, newMarker]);
-      }
-    }
+    };
   };
 
   const getMarkerTypeInfo = (type: MapMarker['type']) => {
@@ -499,31 +500,33 @@ const Maps = () => {
           <Map className="h-8 w-8 text-green-400" />
           <h1 className="text-3xl font-bold">Interactive Maps</h1>
         </div>
-        <button
-          onClick={() => {
-            setIsCreating(true);
-            setIsGenerating(false);
-            setEditingMap(null);
-            setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50, mapWidth: 800, mapHeight: 600 });
-          }}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add Map</span>
-        </button>
-        <button
-          onClick={() => {
-            setIsGenerating(true);
-            setIsCreating(false);
-            setEditingMap(null);
-            setAiPrompt('');
-            setAiMapName('');
-          }}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Generate with AI</span>
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => {
+              setIsCreating(true);
+              setIsGenerating(false);
+              setEditingMap(null);
+              setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50, mapWidth: 800, mapHeight: 600 });
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Map</span>
+          </button>
+          <button
+            onClick={() => {
+              setIsGenerating(true);
+              setIsCreating(false);
+              setEditingMap(null);
+              setAiPrompt('');
+              setAiMapName('');
+            }}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Generate with AI</span>
+          </button>
+        </div>
       </div>
 
       {/* AI Map Generation Form */}
