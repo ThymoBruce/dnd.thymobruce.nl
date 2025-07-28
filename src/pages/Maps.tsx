@@ -158,6 +158,11 @@ const Maps = () => {
     }
   };
 
+  const handleCancelEditing = () => {
+    // Reset markers to the original state
+    setMarkers(viewingMap?.markers || []);
+    setIsEditingMarkers(false);
+  };
   const removeMarker = (markerId: string) => {
     setMarkers(prev => prev.filter(m => m.id !== markerId));
   };
@@ -176,10 +181,19 @@ const Maps = () => {
 
   const handleDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    const blockData = e.dataTransfer.getData('application/json');
+    if (!isEditingMarkers) return;
+    
+    const blockData = e.dataTransfer.getData('text/plain');
     if (!blockData) return;
 
-    const block = JSON.parse(blockData);
+    let block;
+    try {
+      block = JSON.parse(blockData);
+    } catch (error) {
+      console.error('Failed to parse block data:', error);
+      return;
+    }
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -187,7 +201,16 @@ const Maps = () => {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    handleAddBuildingBlock(block, x, y);
+    const newMarker: MapMarker = {
+      id: Date.now().toString(),
+      x,
+      y,
+      label: block.name,
+      type: 'poi',
+      description: block.description
+    };
+    
+    setMarkers(prev => [...prev, newMarker]);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
@@ -256,7 +279,7 @@ const Maps = () => {
                   <span>Save</span>
                 </button>
                 <button
-                  onClick={() => setIsEditingMarkers(false)}
+                  onClick={handleCancelEditing}
                   className="bg-slate-600 hover:bg-slate-700 text-white px-3 py-2 rounded-lg transition-colors duration-200"
                 >
                   Cancel
@@ -290,7 +313,7 @@ const Maps = () => {
         </div>
 
         {/* Map Canvas */}
-        <div className={`flex-1 relative overflow-hidden ${showBuildingBlocks ? 'flex' : ''}`}>
+        <div className={`flex-1 relative ${showBuildingBlocks ? 'flex' : ''} min-h-0`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative max-w-full max-h-full">
               <canvas
@@ -298,9 +321,14 @@ const Maps = () => {
                 width={800}
                 height={600}
                 onClick={handleCanvasClick}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 className={`max-w-full max-h-full border border-slate-600 ${
-                  isEditingMarkers ? 'cursor-crosshair' : 'cursor-default'
-                }`}
+                  isDragOver 
+                    ? 'border-green-500 shadow-lg shadow-green-500/20' 
+                    : 'border-slate-600'
+                } ${isEditingMarkers ? 'cursor-crosshair' : 'cursor-default'}`}
                 style={{
                   backgroundImage: viewingMap.imageUrl ? `url(${viewingMap.imageUrl})` : 'none',
                   backgroundSize: 'cover',
@@ -308,6 +336,15 @@ const Maps = () => {
                   backgroundColor: '#1e293b'
                 }}
               />
+              
+              {/* Drop Zone Indicator */}
+              {isDragOver && (
+                <div className="absolute inset-0 bg-green-500/10 border-2 border-green-500 border-dashed rounded-lg flex items-center justify-center pointer-events-none">
+                  <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold">
+                    Drop building block here
+                  </div>
+                </div>
+              )}
               
               {/* Markers */}
               {showMarkers && markers.map(marker => {
@@ -352,10 +389,12 @@ const Maps = () => {
           </div>
           
           {/* Building Blocks Panel */}
-          <MapBuildingBlocks
-            onAddBlock={handleAddBuildingBlock}
-            isActive={showBuildingBlocks}
-          />
+          {showBuildingBlocks && (
+            <MapBuildingBlocks
+              onAddBlock={handleAddBuildingBlock}
+              isActive={showBuildingBlocks}
+            />
+          )}
         </div>
 
         {/* Instructions */}

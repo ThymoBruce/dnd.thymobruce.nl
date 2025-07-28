@@ -104,17 +104,21 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
     onAddBlock(selectedBlock, x, y);
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>, block: BuildingBlock) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify(block));
+    e.dataTransfer.effectAllowed = 'copy';
+  };
   if (!isActive) return null;
 
   return (
-    <div className="bg-slate-800 border-l border-slate-700 w-80 p-4 overflow-y-auto">
+    <div className="bg-slate-800 border-l border-slate-700 w-80 p-4 overflow-y-auto max-h-full">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
           <Grid className="h-5 w-5 mr-2 text-green-400" />
           Building Blocks
         </h3>
         <p className="text-sm text-slate-400 mb-4">
-          {selectedBlock ? 'Click on the map to place the selected block' : 'Select a building block to place on your map'}
+          {selectedBlock ? 'Click on the map to place the selected block, or drag blocks directly onto the map' : 'Select a building block or drag them directly onto the map'}
         </p>
         
         {/* Create Blank Map Button */}
@@ -168,7 +172,7 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
       )}
 
       {/* Building Blocks Grid */}
-      <div className="space-y-2">
+      <div className="space-y-2 flex-1 overflow-y-auto">
         {filteredBlocks.map(block => {
           const Icon = block.icon;
           const isSelected = selectedBlock?.id === block.id;
@@ -176,12 +180,14 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
           return (
             <button
               key={block.id}
+              draggable={true}
+              onDragStart={(e) => handleDragStart(e, block)}
               onClick={() => setSelectedBlock(isSelected ? null : block)}
               className={`w-full p-3 rounded-lg border-2 transition-all duration-200 ${
                 isSelected
                   ? 'border-green-500 bg-slate-700'
                   : 'border-slate-600 bg-slate-700/50 hover:bg-slate-700 hover:border-slate-500'
-              }`}
+              } cursor-grab active:cursor-grabbing`}
             >
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${block.color}`}>
