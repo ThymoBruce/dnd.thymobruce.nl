@@ -102,6 +102,7 @@ export const useAuth = () => {
         
         try {
           const currentUser = session?.user ?? null;
+        }
         const currentUser = session?.user ?? null;
         
         if (mounted) {
