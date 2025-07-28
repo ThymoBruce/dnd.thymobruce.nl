@@ -143,7 +143,7 @@ const Navigation = () => {
                       {openDropdown === group.id && (
                         <div className="absolute top-full left-0 mt-1 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50">
                           {group.items.map((item) => (
-                            {(() => {
+                            (() => {
                               const ItemIcon = item.icon;
                               return (
                             <Link
@@ -160,7 +160,7 @@ const Navigation = () => {
                               <span>{item.label}</span>
                             </Link>
                               );
-                            })()}
+                            })()
                           ))}
                         </div>
                       )}
