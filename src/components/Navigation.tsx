@@ -83,31 +83,10 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-slate-700 py-4">
-            <div className="flex items-center space-x-4">
-              {/* Desktop Navigation */}
-              {user && (
-                <div className="hidden lg:flex space-x-1">
-                  {navItems.map(({ path, label, icon: Icon }) => (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                        location.pathname === path
-                          ? 'bg-amber-600 text-white shadow-lg'
-                          : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* Auth Section */}
-              {user ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-slate-300 text-sm hidden md:block">
+            {user ? (
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-slate-300 text-sm">
                     Welcome, {user.user_metadata?.name || user.email}
                   </span>
                   <button
@@ -115,51 +94,62 @@ const Navigation = () => {
                     className="flex items-center space-x-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-200"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span className="hidden md:block">Sign Out</span>
+                    <span>Sign Out</span>
                   </button>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-200"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Sign In</span>
-                </button>
-              )}
-
-              {/* Mobile Menu Button */}
-              {user && (
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="lg:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-200"
-                >
-                  {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
-              )}
-            </div>
-          {/* Mobile Navigation */}
-          {user && isMobileMenuOpen && (
-            <div className="lg:hidden border-t border-slate-700 py-4">
-              {navItems.map(({ path, label, icon: Icon }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    location.pathname === path
-                      ? 'bg-amber-600 text-white shadow-lg'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{label}</span>
-                </Link>
-              ))}
-            </div>
-          )}
+                {navItems.map(({ path, label, icon: Icon }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                      location.pathname === path
+                        ? 'bg-amber-600 text-white shadow-lg'
+                        : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{label}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-200"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
         )}
+
+        {/* Desktop Auth Section */}
+        <div className="hidden lg:flex items-center space-x-3">
+          {user ? (
+            <>
+              <span className="text-slate-300 text-sm">
+                Welcome, {user.user_metadata?.name || user.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-colors duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-200"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Sign In</span>
+            </button>
+          )}
+        </div>
       </div>
       </nav>
 
