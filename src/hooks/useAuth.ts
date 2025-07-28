@@ -2,6 +2,41 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, signUp, signIn, signOut, resetPassword, getCurrentUser } from '../lib/supabase';
 
+const ensureUserProfile = async (user: User) => {
+  try {
+    // Check if user profile exists
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 is "not found" error, which is expected if user doesn't exist
+      console.error('Error checking user profile:', fetchError);
+      return;
+    }
+
+    // If user doesn't exist, create profile
+    if (!existingUser) {
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert([{
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          role: 'player'
+        }]);
+
+      if (insertError) {
+        console.error('Error creating user profile:', insertError);
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring user profile:', error);
+  }
+};
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -9,11 +44,14 @@ export const useAuth = () => {
 
   useEffect(() => {
     // Get initial session
-    getCurrentUser().then(({ user, error }) => {
+    getCurrentUser().then(async ({ user, error }) => {
       if (error) {
         setError(error.message);
       } else {
         setUser(user);
+        if (user) {
+          await ensureUserProfile(user);
+        }
       }
       setLoading(false);
     });
@@ -21,7 +59,13 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          await ensureUserProfile(currentUser);
+        }
+        
         setLoading(false);
       }
     );
