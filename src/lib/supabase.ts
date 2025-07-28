@@ -15,6 +15,7 @@ export const signUp = async (email: string, password: string, name: string) => {
     email,
     password,
     options: {
+      emailRedirectTo: undefined,
       data: {
         name: name
       }

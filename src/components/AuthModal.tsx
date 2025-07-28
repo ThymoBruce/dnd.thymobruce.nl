@@ -38,7 +38,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
       
       const { error } = await signUp(formData.email, formData.password, formData.name);
       if (!error) {
-        setMessage('Account created! Please check your email to verify your account.');
+        setMessage('Account created successfully! You can now sign in.');
       }
     } else if (mode === 'signin') {
       const { error } = await signIn(formData.email, formData.password);
