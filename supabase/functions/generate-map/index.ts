@@ -1,12 +1,9 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -25,28 +22,11 @@ serve(async (req) => {
       )
     }
 
-    // Enhanced prompt for better map generation
-    const enhancedPrompt = `Create a detailed fantasy tabletop RPG map: ${prompt}. Style: top-down view, detailed terrain, clear landmarks, suitable for D&D campaigns. High quality, fantasy art style.`
-
-    // For this example, we'll use a placeholder service
-    // In production, you would integrate with OpenAI DALL-E, Stability AI, or similar
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: enhancedPrompt,
-        n: 1,
-        size: size,
-        quality: 'standard',
-        style: 'natural'
-      }),
-    })
-
-    if (!response.ok) {
-      // Fallback to a placeholder image service for demo purposes
+    // Check if OpenAI API key is available
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    
+    if (!openaiApiKey) {
+      // Return placeholder image when API key is not configured
       const placeholderUrl = `https://picsum.photos/1024/768?random=${Date.now()}`
       
       return new Response(
@@ -62,36 +42,79 @@ serve(async (req) => {
       )
     }
 
-    const data = await response.json()
-    const imageUrl = data.data[0]?.url
+    // Enhanced prompt for better map generation
+    const enhancedPrompt = `Create a detailed fantasy tabletop RPG map: ${prompt}. Style: top-down view, detailed terrain, clear landmarks, suitable for D&D campaigns. High quality, fantasy art style.`
 
-    if (!imageUrl) {
-      throw new Error('No image URL returned from AI service')
+    try {
+      const response = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: enhancedPrompt,
+          n: 1,
+          size: size,
+          quality: 'standard',
+          style: 'natural'
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      const imageUrl = data.data[0]?.url
+
+      if (!imageUrl) {
+        throw new Error('No image URL returned from OpenAI API')
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          imageUrl,
+          prompt,
+          message: 'Map generated successfully with OpenAI'
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+
+    } catch (apiError) {
+      console.error('OpenAI API error:', apiError)
+      
+      // Fallback to placeholder when OpenAI API fails
+      const placeholderUrl = `https://picsum.photos/1024/768?random=${Date.now()}`
+      
+      return new Response(
+        JSON.stringify({ 
+          imageUrl: placeholderUrl,
+          prompt: prompt,
+          message: 'Using placeholder image due to OpenAI API error',
+          error: apiError.message
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
-    return new Response(
-      JSON.stringify({ 
-        imageUrl,
-        prompt,
-        message: 'Map generated successfully'
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
-
   } catch (error) {
-    console.error('Error generating map:', error)
+    console.error('Edge function error:', error)
     
-    // Fallback to placeholder for demo
+    // Final fallback
     const placeholderUrl = `https://picsum.photos/1024/768?random=${Date.now()}`
     
     return new Response(
       JSON.stringify({ 
         imageUrl: placeholderUrl,
         prompt: 'fallback',
-        message: 'Using placeholder image due to error',
+        message: 'Using placeholder image due to function error',
         error: error.message
       }),
       { 
