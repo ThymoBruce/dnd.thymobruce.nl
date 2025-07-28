@@ -226,7 +226,7 @@ const Maps = () => {
     setIsDragOver(false);
   };
 
-  const handleAddBuildingBlock = (block: any) => {
+  const handleSelectBuildingBlockFromPanel = (block: any) => {
     if (!isEditingMarkers) {
       alert('Please enter edit mode first by clicking "Edit Markers"');
       return;
@@ -450,7 +450,7 @@ const Maps = () => {
           {showBuildingBlocks && (
             <div className="w-80 flex-shrink-0">
               <MapBuildingBlocks
-                onAddBlock={handleAddBuildingBlock}
+                onAddBlock={handleSelectBuildingBlockFromPanel}
                 isActive={showBuildingBlocks}
                 selectedBlock={selectedBuildingBlock}
               />
