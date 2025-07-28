@@ -43,34 +43,66 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    getCurrentUser().then(async ({ user, error }) => {
-      if (error) {
-        setError(error.message);
-      } else {
-        setUser(user);
-        if (user) {
-          await ensureUserProfile(user);
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        const { user, error } = await getCurrentUser();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          setError(error.message);
+        } else {
+          if (user) {
+            await ensureUserProfile(user);
+          }
+          if (mounted) {
+            setUser(user);
+          }
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Authentication error');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
         }
       }
-      setLoading(false);
-    });
+    };
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
+        if (!mounted) return;
         
-        if (currentUser) {
-          await ensureUserProfile(currentUser);
+        try {
+          const currentUser = session?.user ?? null;
+          
+          if (currentUser && event === 'SIGNED_IN') {
+            await ensureUserProfile(currentUser);
+          }
+          
+          if (mounted) {
+            setUser(currentUser);
+            setLoading(false);
+          }
+        } catch (err) {
+          if (mounted) {
+            setError(err instanceof Error ? err.message : 'Authentication error');
+            setLoading(false);
+          }
         }
-        
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignUp = async (email: string, password: string, name: string) => {
