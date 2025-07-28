@@ -26,7 +26,12 @@ const Maps = () => {
   const [showMarkers, setShowMarkers] = useState(true);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiMapName, setAiMapName] = useState('');
+  const [aiPixelArt, setAiPixelArt] = useState(false);
+  const [aiMapWidth, setAiMapWidth] = useState(800);
+  const [aiMapHeight, setAiMapHeight] = useState(600);
+  const [aiGridSize, setAiGridSize] = useState(50);
   const [showBuildingBlocks, setShowBuildingBlocks] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedBuildingBlock, setSelectedBuildingBlock] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,7 +42,9 @@ const Maps = () => {
     description: '',
     imageUrl: '',
     scale: '',
-    gridSize: 50
+    gridSize: 50,
+    mapWidth: 800,
+    mapHeight: 600
   });
 
   const markerTypes = [
@@ -53,11 +60,13 @@ const Maps = () => {
     const mapData = {
       ...formData,
       markers: [],
-      gridSize: formData.gridSize || 50
+      gridSize: formData.gridSize || 50,
+      mapWidth: formData.mapWidth || 800,
+      mapHeight: formData.mapHeight || 600
     };
     addMap(mapData)
       .then(() => {
-        setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50 });
+        setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50, mapWidth: 800, mapHeight: 600 });
         setIsCreating(false);
       })
       .catch(err => console.error('Failed to create map:', err));
@@ -68,9 +77,13 @@ const Maps = () => {
     if (!aiPrompt.trim() || !aiMapName.trim()) return;
 
     try {
-      await generateMapWithAI(aiPrompt, aiMapName);
+      await generateMapWithAI(aiPrompt, aiMapName, undefined, aiPixelArt, aiMapWidth, aiMapHeight, aiGridSize);
       setAiPrompt('');
       setAiMapName('');
+      setAiPixelArt(false);
+      setAiMapWidth(800);
+      setAiMapHeight(600);
+      setAiGridSize(50);
       setIsGenerating(false);
     } catch (err) {
       console.error('Failed to generate AI map:', err);
@@ -83,12 +96,14 @@ const Maps = () => {
     const mapData = {
       ...formData,
       markers: editingMap.markers || [],
-      gridSize: formData.gridSize || 50
+      gridSize: formData.gridSize || 50,
+      mapWidth: formData.mapWidth || 800,
+      mapHeight: formData.mapHeight || 600
     };
     updateMap(editingMap.id, mapData)
       .then(() => {
         setEditingMap(null);
-        setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50 });
+        setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50, mapWidth: 800, mapHeight: 600 });
       })
       .catch(err => console.error('Failed to update map:', err));
   };
@@ -111,7 +126,9 @@ const Maps = () => {
       description: map.description || '',
       imageUrl: map.imageUrl || '',
       scale: map.scale || '',
-      gridSize: map.gridSize || 50
+      gridSize: map.gridSize || 50,
+      mapWidth: map.mapWidth || 800,
+      mapHeight: map.mapHeight || 600
     });
   };
 
@@ -338,6 +355,15 @@ const Maps = () => {
               {showMarkers ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               <span>Markers</span>
             </button>
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className={`px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 ${
+                showGrid ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-600 hover:bg-slate-700'
+              } text-white`}
+            >
+              <Grid className="h-4 w-4" />
+              <span>Grid</span>
+            </button>
             {isEditingMarkers ? (
               <>
                 <select
@@ -396,8 +422,8 @@ const Maps = () => {
             <div className="relative max-w-full max-h-full">
               <canvas
                 ref={canvasRef}
-                width={800}
-                height={600}
+                width={viewingMap.mapWidth || 800}
+                height={viewingMap.mapHeight || 600}
                 onClick={handleMapClick}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -430,8 +456,10 @@ const Maps = () => {
                 
                 // Render tile-based markers with images
                 if (marker.type === 'tile' && marker.imageUrl && marker.tileSize) {
-                  const tileWidth = (marker.tileSize.width * (viewingMap.gridSize || 50));
-                  const tileHeight = (marker.tileSize.height * (viewingMap.gridSize || 50));
+                  const canvasWidth = viewingMap.mapWidth || 800;
+                  const canvasHeight = viewingMap.mapHeight || 600;
+                  const tileWidth = (marker.tileSize.width * (viewingMap.gridSize || 50)) * (canvasWidth / 800);
+                  const tileHeight = (marker.tileSize.height * (viewingMap.gridSize || 50)) * (canvasHeight / 600);
                   
                   return (
                     <div
@@ -559,7 +587,7 @@ const Maps = () => {
             setIsCreating(true);
             setIsGenerating(false);
             setEditingMap(null);
-            setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50 });
+            setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50, mapWidth: 800, mapHeight: 600 });
           }}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
         >
@@ -602,6 +630,47 @@ const Maps = () => {
                 required
               />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Map Width (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="400"
+                  max="2000"
+                  value={aiMapWidth}
+                  onChange={(e) => setAiMapWidth(parseInt(e.target.value) || 800)}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Map Height (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="400"
+                  max="2000"
+                  value={aiMapHeight}
+                  onChange={(e) => setAiMapHeight(parseInt(e.target.value) || 600)}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Grid Size (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  value={aiGridSize}
+                  onChange={(e) => setAiGridSize(parseInt(e.target.value) || 50)}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Describe Your Map
@@ -620,6 +689,18 @@ Examples:
 • A coastal village with docks and a lighthouse"
                 required
               />
+            </div>
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="pixelArt"
+                checked={aiPixelArt}
+                onChange={(e) => setAiPixelArt(e.target.checked)}
+                className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+              />
+              <label htmlFor="pixelArt" className="text-sm font-medium text-slate-300">
+                Generate in 2D Pixel Art Style 🎨
+              </label>
             </div>
             <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
               <h4 className="text-sm font-semibold text-purple-300 mb-2">💡 Tips for Better Results:</h4>
@@ -690,6 +771,47 @@ Examples:
                   placeholder="1 square = 5 feet"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Grid Size (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  value={formData.gridSize}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gridSize: parseInt(e.target.value) || 50 }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Map Width (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="400"
+                  max="2000"
+                  value={formData.mapWidth}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mapWidth: parseInt(e.target.value) || 800 }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Map Height (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="400"
+                  max="2000"
+                  value={formData.mapHeight}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mapHeight: parseInt(e.target.value) || 800 }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -726,7 +848,7 @@ Examples:
                 type="button"
                 onClick={() => {
                   setEditingMap(null);
-                  setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50 });
+                  setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50, mapWidth: 800, mapHeight: 600 });
                 }}
                 className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
               >
@@ -765,6 +887,47 @@ Examples:
                   onChange={(e) => setFormData(prev => ({ ...prev, scale: e.target.value }))}
                   className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="1 square = 5 feet"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Grid Size (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  value={formData.gridSize}
+                  onChange={(e) => setFormData(prev => ({ ...prev, gridSize: parseInt(e.target.value) || 50 }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Map Width (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="400"
+                  max="2000"
+                  value={formData.mapWidth}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mapWidth: parseInt(e.target.value) || 800 }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Map Height (pixels)
+                </label>
+                <input
+                  type="number"
+                  min="400"
+                  max="2000"
+                  value={formData.mapHeight}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mapHeight: parseInt(e.target.value) || 800 }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
@@ -886,7 +1049,10 @@ Examples:
                 
                 <div className="flex items-center justify-between text-sm text-slate-400">
                   <span>{(map.markers || []).length} markers</span>
-                  <span>Created {new Date(map.created_at).toLocaleDateString()}</span>
+                  <div className="text-right">
+                    <div>{map.mapWidth || 800}×{map.mapHeight || 600}px</div>
+                    <div>Created {new Date(map.created_at).toLocaleDateString()}</div>
+                  </div>
                 </div>
               </div>
             </div>

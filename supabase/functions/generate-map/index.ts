@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { prompt, style = 'fantasy map', size = '1024x1024' } = await req.json()
+    const { prompt, pixelArt = false, style = 'fantasy map', size = '1024x1024' } = await req.json()
 
     if (!prompt) {
       return new Response(
@@ -43,7 +43,10 @@ Deno.serve(async (req) => {
     }
 
     // Enhanced prompt for better map generation
-    const enhancedPrompt = `Create a detailed fantasy tabletop RPG map: ${prompt}. Style: top-down view, detailed terrain, clear landmarks, suitable for D&D campaigns. High quality, fantasy art style.`
+    const styleModifier = pixelArt ? '2D pixel art style, 16-bit retro gaming aesthetic, crisp pixels, medieval fantasy' : 'detailed fantasy art style, high quality'
+    const enhancedPrompt = `Create a detailed fantasy tabletop RPG map: ${prompt}. Style: top-down view, ${styleModifier}, detailed terrain, clear landmarks, suitable for D&D campaigns. ${pixelArt ? 'Pixel art, retro gaming style, sharp pixels, no anti-aliasing.' : 'High quality fantasy art.'}`
+    
+    console.log('Enhanced prompt:', enhancedPrompt)
 
     try {
       const response = await fetch('https://api.openai.com/v1/images/generations', {
@@ -56,7 +59,7 @@ Deno.serve(async (req) => {
           prompt: enhancedPrompt,
           n: 1,
           size: size,
-          quality: 'standard',
+          quality: pixelArt ? 'standard' : 'hd',
           style: 'natural'
         }),
       })
@@ -76,7 +79,7 @@ Deno.serve(async (req) => {
         JSON.stringify({ 
           imageUrl,
           prompt,
-          message: 'Map generated successfully with OpenAI'
+          message: `Map generated successfully with OpenAI${pixelArt ? ' in pixel art style' : ''}`
         }),
         { 
           status: 200, 

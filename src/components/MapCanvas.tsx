@@ -50,12 +50,12 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
       const img = new Image();
       img.onload = () => {
         ctx.drawImage(img, 0, 0, width, height);
-        drawGrid(ctx);
+        if (showGrid) drawGrid(ctx);
       };
       img.src = backgroundImage;
     } else {
       // Always draw grid
-      drawGrid(ctx);
+      if (showGrid) drawGrid(ctx);
     }
 
     function drawGrid(ctx: CanvasRenderingContext2D) {
