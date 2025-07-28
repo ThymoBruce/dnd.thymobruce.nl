@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, signUp, signIn, signOut, resetPassword, getCurrentUser } from '../lib/supabase';
 
-const ensureUserProfile = async (user: User) => {
+const ensureUserProfile = async (user: User, retryCount = 0) => {
+  // Avoid infinite retries
+  if (retryCount > 3) {
+    console.warn('Max retries reached for user profile creation');
+    return;
+  }
+
   try {
     // Check if user profile exists
     const { data: existingUser, error: fetchError } = await supabase
@@ -13,7 +19,9 @@ const ensureUserProfile = async (user: User) => {
 
     if (fetchError && fetchError.code !== 'PGRST116') {
       // PGRST116 is "not found" error, which is expected if user doesn't exist
-      console.error('Error checking user profile:', fetchError);
+      console.warn('Error checking user profile, retrying...', fetchError);
+      // Retry after a short delay
+      setTimeout(() => ensureUserProfile(user, retryCount + 1), 1000);
       return;
     }
 
@@ -29,11 +37,15 @@ const ensureUserProfile = async (user: User) => {
         }]);
 
       if (insertError) {
-        console.error('Error creating user profile:', insertError);
+        console.warn('Error creating user profile, retrying...', insertError);
+        // Retry after a short delay
+        setTimeout(() => ensureUserProfile(user, retryCount + 1), 1000);
       }
     }
   } catch (error) {
-    console.error('Error ensuring user profile:', error);
+    console.warn('Error ensuring user profile, retrying...', error);
+    // Retry after a short delay
+    setTimeout(() => ensureUserProfile(user, retryCount + 1), 1000);
   }
 };
 
@@ -41,67 +53,79 @@ export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
+    let authSubscription: any = null;
 
-    const initializeAuth = async () => {
-      try {
-        const { user, error } = await getCurrentUser();
-        
-        if (!mounted) return;
-        
-        if (error) {
-          setError(error.message);
-        } else {
-          if (user) {
-            await ensureUserProfile(user);
-          }
-          if (mounted) {
-            setUser(user);
-          }
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Authentication error');
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    // Listen for auth changes first
+    authSubscription = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
+        
+        console.log('Auth state change:', event, session?.user?.id);
         
         try {
           const currentUser = session?.user ?? null;
           
-          if (currentUser && event === 'SIGNED_IN') {
-            await ensureUserProfile(currentUser);
-          }
-          
           if (mounted) {
             setUser(currentUser);
             setLoading(false);
+            setInitialized(true);
+          }
+          
+          // Only create profile after successful sign in, not on initial load
+          if (currentUser && event === 'SIGNED_IN' && mounted) {
+            // Don't await this to avoid blocking the UI
+            ensureUserProfile(currentUser);
           }
         } catch (err) {
           if (mounted) {
+            console.error('Auth state change error:', err);
             setError(err instanceof Error ? err.message : 'Authentication error');
             setLoading(false);
+            setInitialized(true);
           }
         }
       }
     );
 
-    initializeAuth();
+    // Get initial session after setting up listener
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          setError(error.message);
+        } else {
+          if (mounted) {
+            setUser(session?.user ?? null);
+            setLoading(false);
+            setInitialized(true);
+          }
+        }
+      } catch (err) {
+        if (mounted) {
+          console.error('Initialize auth error:', err);
+          setError(err instanceof Error ? err.message : 'Authentication error');
+          setLoading(false);
+          setInitialized(true);
+        }
+      }
+    };
+
+    // Small delay to ensure Supabase is ready
+    setTimeout(getInitialSession, 100);
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (authSubscription) {
+        authSubscription.data?.subscription?.unsubscribe();
+      }
     };
   }, []);
 
@@ -115,24 +139,6 @@ export const useAuth = () => {
       setError(error.message);
       setLoading(false);
       return { data, error };
-    } else {
-      // Create user profile
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([{
-            id: data.user.id,
-            email: data.user.email,
-            name: name,
-            role: 'player'
-          }]);
-        
-        if (profileError) {
-          setError(profileError.message);
-          setLoading(false);
-          return { data, error: profileError };
-        }
-      }
     }
     
     setLoading(false);
@@ -178,7 +184,7 @@ export const useAuth = () => {
 
   return {
     user,
-    loading,
+    loading: loading || !initialized,
     error,
     signUp: handleSignUp,
     signIn: handleSignIn,
