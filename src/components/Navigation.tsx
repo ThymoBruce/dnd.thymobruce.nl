@@ -105,6 +105,7 @@ const Navigation = () => {
                 if (group.items.length === 1) {
                   // Single item - render as direct link
                   const item = group.items[0];
+                  const ItemIcon = item.icon;
                   return (
                     <Link
                       key={item.path}
@@ -115,12 +116,13 @@ const Navigation = () => {
                           : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                       }`}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <ItemIcon className="h-4 w-4" />
                       <span>{item.label}</span>
                     </Link>
                   );
                 } else {
                   // Multiple items - render as dropdown
+                  const GroupIcon = group.icon;
                   return (
                     <div key={group.id} className="relative">
                       <button
@@ -131,7 +133,7 @@ const Navigation = () => {
                             : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                         }`}
                       >
-                        <group.icon className="h-4 w-4" />
+                        <GroupIcon className="h-4 w-4" />
                         <span>{group.label}</span>
                         <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${
                           openDropdown === group.id ? 'rotate-180' : ''
@@ -141,6 +143,9 @@ const Navigation = () => {
                       {openDropdown === group.id && (
                         <div className="absolute top-full left-0 mt-1 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50">
                           {group.items.map((item) => (
+                            {(() => {
+                              const ItemIcon = item.icon;
+                              return (
                             <Link
                               key={item.path}
                               to={item.path}
@@ -151,9 +156,11 @@ const Navigation = () => {
                                   : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                               }`}
                             >
-                              <item.icon className="h-4 w-4" />
+                              <ItemIcon className="h-4 w-4" />
                               <span>{item.label}</span>
                             </Link>
+                              );
+                            })()}
                           ))}
                         </div>
                       )}
@@ -219,6 +226,9 @@ const Navigation = () => {
                   {menuGroups.map((group) => (
                     <div key={group.id} className="space-y-1">
                       {group.items.length === 1 ? (
+                        (() => {
+                          const ItemIcon = group.items[0].icon;
+                          return (
                         <Link
                           to={group.items[0].path}
                           onClick={() => setIsMobileMenuOpen(false)}
@@ -228,15 +238,20 @@ const Navigation = () => {
                               : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                           }`}
                         >
-                          <group.items[0].icon className="h-5 w-5" />
+                          <ItemIcon className="h-5 w-5" />
                           <span>{group.items[0].label}</span>
                         </Link>
+                          );
+                        })()
                       ) : (
                         <>
                           <div className="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
                             {group.label}
                           </div>
                           {group.items.map((item) => (
+                            (() => {
+                              const ItemIcon = item.icon;
+                              return (
                             <Link
                               key={item.path}
                               to={item.path}
@@ -247,9 +262,11 @@ const Navigation = () => {
                                   : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                               }`}
                             >
-                              <item.icon className="h-5 w-5" />
+                              <ItemIcon className="h-5 w-5" />
                               <span>{item.label}</span>
                             </Link>
+                              );
+                            })()
                           ))}
                         </>
                       )}
