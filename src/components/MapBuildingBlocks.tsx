@@ -12,13 +12,13 @@ interface BuildingBlock {
 }
 
 interface MapBuildingBlocksProps {
-  onAddBlock: (block: BuildingBlock, x: number, y: number) => void;
+  onAddBlock: (block: BuildingBlock) => void;
   isActive: boolean;
   onCreateBlankMap?: () => void;
+  selectedBlock?: BuildingBlock | null;
 }
 
-const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isActive, onCreateBlankMap }) => {
-  const [selectedBlock, setSelectedBlock] = useState<BuildingBlock | null>(null);
+const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isActive, onCreateBlankMap, selectedBlock }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const buildingBlocks: BuildingBlock[] = [
@@ -182,7 +182,7 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
               key={block.id}
               draggable={true}
               onDragStart={(e) => handleDragStart(e, block)}
-              onClick={() => setSelectedBlock(isSelected ? null : block)}
+              onClick={() => onAddBlock(block)}
               className={`w-full p-3 rounded-lg border-2 transition-all duration-200 ${
                 isSelected
                   ? 'border-green-500 bg-slate-700'

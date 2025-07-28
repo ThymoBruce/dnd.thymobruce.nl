@@ -26,6 +26,7 @@ const Maps = () => {
   const [aiMapName, setAiMapName] = useState('');
   const [showBuildingBlocks, setShowBuildingBlocks] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedBuildingBlock, setSelectedBuildingBlock] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -182,6 +183,7 @@ const Maps = () => {
 
   const handleDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    setIsDragOver(false);
     if (!isEditingMarkers) return;
     
     const blockData = e.dataTransfer.getData('text/plain');
@@ -224,8 +226,57 @@ const Maps = () => {
     setIsDragOver(false);
   };
 
-  const getMarkerTypeInfo = (type: MapMarker['type']) => {
+  const handleAddBuildingBlock = (block: any) => {
+    if (!isEditingMarkers) {
+      alert('Please enter edit mode first by clicking "Edit Markers"');
+      return;
+    }
+    
+    // Set the selected block for click placement
+    setSelectedBuildingBlock(block);
+  };
+
+  const handleMapClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isEditingMarkers) return;
+    
+    // Handle regular marker placement
+    if (!selectedBuildingBlock) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+      const label = prompt('Enter marker label:');
+      if (!label) return;
+
+      const description = prompt('Enter marker description (optional):') || '';
+
+      const newMarker: MapMarker = {
+        id: Date.now().toString(),
+        x,
+        y,
+        label,
+        type: selectedMarkerType,
+        description
+      };
+
+      setMarkers(prev => [...prev, newMarker]);
+      return;
+    }
+
+    // Handle building block placement
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+      label: selectedBuildingBlock.name,
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+      description: selectedBuildingBlock.description
+
+    
     return markerTypes.find(t => t.type === type) || markerTypes[0];
+    setSelectedBuildingBlock(null); // Clear selection after placement
   };
 
   if (loading) {
@@ -327,7 +378,7 @@ const Maps = () => {
                 ref={canvasRef}
                 width={800}
                 height={600}
-                onClick={handleCanvasClick}
+                onClick={handleMapClick}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -401,6 +452,7 @@ const Maps = () => {
               <MapBuildingBlocks
                 onAddBlock={handleAddBuildingBlock}
                 isActive={showBuildingBlocks}
+                selectedBlock={selectedBuildingBlock}
               />
             </div>
           )}
