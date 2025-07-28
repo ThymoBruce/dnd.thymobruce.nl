@@ -320,8 +320,8 @@ const Maps = () => {
         </div>
 
         {/* Map Canvas */}
-        <div className={`flex-1 relative ${showBuildingBlocks ? 'flex' : ''} min-h-0`}>
-          <div className="absolute inset-0 flex items-center justify-center">
+        <div className={`flex-1 ${showBuildingBlocks ? 'flex' : 'flex items-center justify-center'} min-h-0`}>
+          <div className={`${showBuildingBlocks ? 'flex-1 flex items-center justify-center' : 'w-full h-full flex items-center justify-center'}`}>
             <div className="relative max-w-full max-h-full">
               <canvas
                 ref={canvasRef}
@@ -397,10 +397,12 @@ const Maps = () => {
           
           {/* Building Blocks Panel */}
           {showBuildingBlocks && (
-            <MapBuildingBlocks
-              onAddBlock={handleAddBuildingBlock}
-              isActive={showBuildingBlocks}
-            />
+            <div className="w-80 flex-shrink-0">
+              <MapBuildingBlocks
+                onAddBlock={handleAddBuildingBlock}
+                isActive={showBuildingBlocks}
+              />
+            </div>
           )}
         </div>
 
