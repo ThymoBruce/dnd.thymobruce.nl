@@ -12,14 +12,17 @@ interface MapMarker {
 }
 
 const Maps = () => {
-  const { maps, addMap, updateMap, deleteMap, loading, error } = useMaps();
+  const { maps, addMap, updateMap, deleteMap, loading, error, generating, generateMapWithAI } = useMaps();
   const [isCreating, setIsCreating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [editingMap, setEditingMap] = useState<any>(null);
   const [viewingMap, setViewingMap] = useState<any>(null);
   const [isEditingMarkers, setIsEditingMarkers] = useState(false);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [selectedMarkerType, setSelectedMarkerType] = useState<MapMarker['type']>('location');
   const [showMarkers, setShowMarkers] = useState(true);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiMapName, setAiMapName] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -52,6 +55,20 @@ const Maps = () => {
         setIsCreating(false);
       })
       .catch(err => console.error('Failed to create map:', err));
+  };
+
+  const handleAIGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiPrompt.trim() || !aiMapName.trim()) return;
+
+    try {
+      await generateMapWithAI(aiPrompt, aiMapName);
+      setAiPrompt('');
+      setAiMapName('');
+      setIsGenerating(false);
+    } catch (err) {
+      console.error('Failed to generate AI map:', err);
+    }
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
@@ -314,6 +331,7 @@ const Maps = () => {
         <button
           onClick={() => {
             setIsCreating(true);
+            setIsGenerating(false);
             setEditingMap(null);
             setFormData({ name: '', description: '', imageUrl: '', scale: '', gridSize: 50 });
           }}
@@ -322,7 +340,99 @@ const Maps = () => {
           <Plus className="h-4 w-4" />
           <span>Add Map</span>
         </button>
+        <button
+          onClick={() => {
+            setIsGenerating(true);
+            setIsCreating(false);
+            setEditingMap(null);
+            setAiPrompt('');
+            setAiMapName('');
+          }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Generate with AI</span>
+        </button>
       </div>
+
+      {/* AI Map Generation Form */}
+      {isGenerating && (
+        <div className="bg-slate-800 rounded-lg p-6 border-2 border-purple-500/50">
+          <h3 className="text-xl font-semibold mb-4 flex items-center">
+            <span className="bg-purple-600 text-white px-2 py-1 rounded text-sm mr-3">AI</span>
+            Generate Map with AI
+          </h3>
+          <form onSubmit={handleAIGenerate} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Map Name
+              </label>
+              <input
+                type="text"
+                value={aiMapName}
+                onChange={(e) => setAiMapName(e.target.value)}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter a name for your map..."
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Describe Your Map
+              </label>
+              <textarea
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                rows={4}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Describe the map you want to generate... 
+
+Examples:
+• A dark forest with ancient ruins and a mysterious tower
+• A bustling medieval town with a market square and castle
+• An underground dungeon with multiple chambers and traps
+• A coastal village with docks and a lighthouse"
+                required
+              />
+            </div>
+            <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-purple-300 mb-2">💡 Tips for Better Results:</h4>
+              <ul className="text-sm text-slate-300 space-y-1">
+                <li>• Be specific about terrain (forest, desert, mountains, etc.)</li>
+                <li>• Mention key landmarks (towers, rivers, ruins, settlements)</li>
+                <li>• Include the mood or atmosphere (dark, mystical, abandoned)</li>
+                <li>• Specify the scale (village, region, dungeon level)</li>
+              </ul>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                disabled={generating || !aiPrompt.trim() || !aiMapName.trim()}
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+              >
+                {generating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    <span>Generate Map</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsGenerating(false)}
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Edit Map Form */}
       {editingMap && (
@@ -475,17 +585,26 @@ const Maps = () => {
         </div>
       )}
 
-      {maps.length === 0 && !isCreating && !editingMap ? (
+      {maps.length === 0 && !isCreating && !editingMap && !isGenerating ? (
         <div className="text-center py-12">
           <Map className="h-16 w-16 text-slate-400 mx-auto mb-4" />
           <p className="text-xl text-slate-300 mb-2">No maps yet</p>
           <p className="text-slate-400 mb-6">Create interactive maps for your campaigns</p>
-          <button
-            onClick={() => setIsCreating(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200"
-          >
-            Create First Map
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => setIsCreating(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200"
+            >
+              Create First Map
+            </button>
+            <button
+              onClick={() => setIsGenerating(true)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Generate with AI</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
