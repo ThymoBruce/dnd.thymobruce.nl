@@ -48,6 +48,8 @@ export interface Campaign {
   status: string;
   created_at?: string;
   dmName?: string; // For display purposes
+  mapWidth?: number;
+  mapHeight?: number;
   isActive?: boolean; // For display purposes
 }
 

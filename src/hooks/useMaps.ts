@@ -21,6 +21,8 @@ interface GameMap {
   imageUrl?: string;
   scale?: string;
   gridSize: number;
+  mapWidth?: number;
+  mapHeight?: number;
   markers: MapMarker[];
   created_at?: string;
 }
@@ -46,6 +48,8 @@ export const useMaps = () => {
         ...map,
         imageUrl: map.image_url,
         gridSize: map.grid_size || 50,
+        mapWidth: map.map_width || 800,
+        mapHeight: map.map_height || 600,
         markers: map.markers || []
       })) || [];
 
@@ -67,6 +71,8 @@ export const useMaps = () => {
           image_url: map.imageUrl,
           scale: map.scale,
           grid_size: map.gridSize,
+          map_width: map.mapWidth || 800,
+          map_height: map.mapHeight || 600,
           markers: map.markers || []
         }])
         .select()
@@ -79,6 +85,8 @@ export const useMaps = () => {
           ...data,
           imageUrl: data.image_url,
           gridSize: data.grid_size || 50,
+          mapWidth: data.map_width || 800,
+          mapHeight: data.map_height || 600,
           markers: data.markers || []
         };
         setMaps(prev => [newMap, ...prev]);
@@ -99,6 +107,8 @@ export const useMaps = () => {
           image_url: updates.imageUrl,
           scale: updates.scale,
           grid_size: updates.gridSize,
+          map_width: updates.mapWidth,
+          map_height: updates.mapHeight,
           markers: updates.markers
         })
         .eq('id', id)
@@ -112,6 +122,8 @@ export const useMaps = () => {
           ...data,
           imageUrl: data.image_url,
           gridSize: data.grid_size || 50,
+          mapWidth: data.map_width || 800,
+          mapHeight: data.map_height || 600,
           markers: data.markers || []
         };
         setMaps(prev => prev.map(map => 
@@ -140,7 +152,7 @@ export const useMaps = () => {
     }
   };
 
-  const generateMapWithAI = async (prompt: string, mapName: string, description?: string) => {
+  const generateMapWithAI = async (prompt: string, mapName: string, description?: string, pixelArt: boolean = false, mapWidth: number = 800, mapHeight: number = 600, gridSize: number = 50) => {
     try {
       setGenerating(true);
       setError(null);
@@ -153,7 +165,8 @@ export const useMaps = () => {
         },
         body: JSON.stringify({ 
           prompt,
-          style: 'fantasy map',
+          pixelArt,
+          style: pixelArt ? '2D pixel art fantasy map' : 'fantasy map',
           size: '1024x1024'
         }),
       });
@@ -171,10 +184,12 @@ export const useMaps = () => {
       // Create a new map with the AI-generated image
       const newMap = {
         name: mapName,
-        description: description || `AI-generated map: ${prompt}`,
+        description: description || `AI-generated ${pixelArt ? 'pixel art ' : ''}map: ${prompt}`,
         imageUrl: data.imageUrl,
         scale: '1 square = 5 feet',
-        gridSize: 50,
+        gridSize: gridSize,
+        mapWidth: mapWidth,
+        mapHeight: mapHeight,
         markers: []
       };
 
