@@ -1,23 +1,23 @@
 import React from 'react';
 import { useCharacters } from '../hooks/useCharacters';
 import { useCampaigns } from '../hooks/useCampaigns';
+import { useQuests } from '../hooks/useQuests';
 import { useItems } from '../hooks/useItems';
 import { useLocations } from '../hooks/useLocations';
 import { useNPCs } from '../hooks/useNPCs';
 import { useMonsters } from '../hooks/useMonsters';
 import { useSessionNotes } from '../hooks/useSessionNotes';
-import { useMaps } from '../hooks/useMaps';
-import { Users, BookOpen, Sword, MapPin, UserCheck, Skull, ScrollText } from 'lucide-react';
+import { Users, BookOpen, Sword, MapPin, UserCheck, Skull, ScrollText, Scroll } from 'lucide-react';
 
 const Dashboard = () => {
   const { characters } = useCharacters();
   const { campaigns } = useCampaigns();
+  const { quests } = useQuests();
   const { items } = useItems();
   const { locations } = useLocations();
   const { npcs } = useNPCs();
   const { monsters } = useMonsters();
   const { sessionNotes } = useSessionNotes();
-  const { maps } = useMaps();
   
   // For now, we'll use the first active campaign or null
   const activeCampaign = campaigns.find(c => c.status === 'active') || null;
@@ -25,9 +25,9 @@ const Dashboard = () => {
   const stats = [
     { label: 'Characters', count: characters.length, icon: Users, color: 'bg-blue-600' },
     { label: 'Campaigns', count: campaigns.length, icon: BookOpen, color: 'bg-purple-600' },
+    { label: 'Quests', count: quests.length, icon: Scroll, color: 'bg-amber-600' },
     { label: 'Items', count: items.length, icon: Sword, color: 'bg-red-600' },
     { label: 'Locations', count: locations.length, icon: MapPin, color: 'bg-green-600' },
-    { label: 'Maps', count: maps.length, icon: MapPin, color: 'bg-teal-600' },
     { label: 'NPCs', count: npcs.length, icon: UserCheck, color: 'bg-yellow-600' },
     { label: 'Monsters', count: monsters.length, icon: Skull, color: 'bg-purple-600' },
     { label: 'Session Notes', count: sessionNotes.length, icon: ScrollText, color: 'bg-indigo-600' },
@@ -88,6 +88,31 @@ const Dashboard = () => {
             </div>
           ) : (
             <p className="text-slate-400">No characters created yet</p>
+          )}
+        </div>
+
+        <div className="bg-slate-800 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4 flex items-center">
+            <Scroll className="h-5 w-5 mr-2 text-amber-400" />
+            Recent Quests
+          </h3>
+          {quests.length > 0 ? (
+            <div className="space-y-3">
+              {quests.slice(0, 3).map(quest => (
+                <div key={quest.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                  <div>
+                    <p className="font-medium">{quest.name}</p>
+                    <p className="text-sm text-slate-400 capitalize">{quest.difficulty} • {quest.status}</p>
+                  </div>
+                  <div className="text-right text-sm text-slate-400">
+                    {quest.experience_reward > 0 && <p>{quest.experience_reward} XP</p>}
+                    {quest.gold_reward > 0 && <p>{quest.gold_reward} GP</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-400">No quests created yet</p>
           )}
         </div>
 

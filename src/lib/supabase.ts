@@ -9,6 +9,43 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Auth helper functions
+export const signUp = async (email: string, password: string, name: string) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name: name
+      }
+    }
+  });
+  return { data, error };
+};
+
+export const signIn = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+  return { data, error };
+};
+
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  return { error };
+};
+
+export const resetPassword = async (email: string) => {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+  return { data, error };
+};
+
+export const getCurrentUser = async () => {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  return { user, error };
+};
+
 // Database types
 export interface Character {
   id: string;
@@ -112,6 +149,34 @@ export interface Monster {
   resistances?: string[];
   vulnerabilities?: string[];
   created_at?: string;
+}
+
+export interface Quest {
+  id: string;
+  user_id?: string;
+  campaign_id?: string;
+  name: string;
+  description?: string;
+  objectives?: string[];
+  rewards?: string[];
+  status: 'active' | 'completed' | 'failed' | 'abandoned';
+  difficulty: 'easy' | 'medium' | 'hard' | 'deadly';
+  experience_reward: number;
+  gold_reward: number;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CampaignInvite {
+  id: string;
+  campaign_id: string;
+  inviter_id: string;
+  invitee_email: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at?: string;
+  campaign?: Campaign;
+  inviter?: { name: string; email: string };
 }
 
 export interface SessionNote {
