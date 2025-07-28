@@ -31,9 +31,17 @@ export const useMaps = () => {
   const fetchMaps = async () => {
     try {
       setLoading(true);
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const { data, error } = await supabase
         .from('maps')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -56,9 +64,16 @@ export const useMaps = () => {
 
   const addMap = async (map: Omit<GameMap, 'id' | 'created_at'>) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const { data, error } = await supabase
         .from('maps')
         .insert([{
+          user_id: user.id,
           name: map.name,
           description: map.description,
           image_url: map.imageUrl,
@@ -88,6 +103,12 @@ export const useMaps = () => {
 
   const updateMap = async (id: string, updates: Partial<GameMap>) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const { data, error } = await supabase
         .from('maps')
         .update({
@@ -99,6 +120,7 @@ export const useMaps = () => {
           markers: updates.markers
         })
         .eq('id', id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -123,10 +145,17 @@ export const useMaps = () => {
 
   const deleteMap = async (id: string) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const { error } = await supabase
         .from('maps')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
