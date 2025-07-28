@@ -41,9 +41,16 @@ export const useCharacters = () => {
 
   const addCharacter = async (character: Omit<Character, 'id' | 'created_at'>) => {
     try {
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .insert([{
+          user_id: user.id,
           name: character.name,
           race: character.race,
           class: character.class,
@@ -95,9 +102,16 @@ export const useCharacters = () => {
 
   const updateCharacter = async (id: string, updates: Partial<Character>) => {
     try {
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .update({
+          user_id: user.id,
           name: updates.name,
           race: updates.race,
           class: updates.class,
