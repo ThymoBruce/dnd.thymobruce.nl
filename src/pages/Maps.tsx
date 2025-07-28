@@ -8,8 +8,10 @@ interface MapMarker {
   x: number;
   y: number;
   label: string;
-  type: 'location' | 'poi' | 'danger' | 'treasure' | 'npc';
+  type: 'location' | 'poi' | 'danger' | 'treasure' | 'npc' | 'tile';
   description?: string;
+  imageUrl?: string;
+  tileSize?: { width: number; height: number };
 }
 
 const Maps = () => {
@@ -175,8 +177,10 @@ const Maps = () => {
       x,
       y,
       label: block.name,
-      type: 'poi', // Default to POI for building blocks
-      description: block.description
+      type: 'tile',
+      description: block.description,
+      imageUrl: block.imageUrl,
+      tileSize: block.tileSize
     };
     setMarkers(prev => [...prev, newMarker]);
   };
@@ -209,8 +213,10 @@ const Maps = () => {
       x,
       y,
       label: block.name,
-      type: 'poi',
-      description: block.description
+      type: 'tile',
+      description: block.description,
+      imageUrl: block.imageUrl,
+      tileSize: block.tileSize
     };
     
     setMarkers(prev => [...prev, newMarker]);
@@ -279,8 +285,10 @@ const Maps = () => {
       x,
       y,
       label: `${selectedBuildingBlock.name} (${selectedBuildingBlock.tileSize.width}×${selectedBuildingBlock.tileSize.height})`,
-      type: 'poi',
-      description: selectedBuildingBlock.description
+      type: 'tile',
+      description: selectedBuildingBlock.description,
+      imageUrl: selectedBuildingBlock.imageUrl,
+      tileSize: selectedBuildingBlock.tileSize
     };
 
     setMarkers(prev => [...prev, newMarker]);
@@ -419,6 +427,60 @@ const Maps = () => {
               {/* Markers */}
               {showMarkers && markers.map(marker => {
                 const typeInfo = getMarkerTypeInfo(marker.type);
+                
+                // Render tile-based markers with images
+                if (marker.type === 'tile' && marker.imageUrl && marker.tileSize) {
+                  const tileWidth = (marker.tileSize.width * (viewingMap.gridSize || 50));
+                  const tileHeight = (marker.tileSize.height * (viewingMap.gridSize || 50));
+                  
+                  return (
+                    <div
+                      key={marker.id}
+                      className="absolute group"
+                      style={{
+                        left: `${marker.x}%`,
+                        top: `${marker.y}%`,
+                        width: `${tileWidth}px`,
+                        height: `${tileHeight}px`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    >
+                      <img
+                        src={marker.imageUrl}
+                        alt={marker.label}
+                        className="w-full h-full object-cover border-2 border-amber-500/50 hover:border-amber-400 transition-all duration-200 rounded-sm"
+                        style={{
+                          imageRendering: 'pixelated'
+                        }}
+                      />
+                      
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        <div className="bg-slate-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap border border-slate-600">
+                          <div className="font-semibold">{marker.label}</div>
+                          {marker.description && (
+                            <div className="text-slate-300 text-xs">{marker.description}</div>
+                          )}
+                          <div className="text-amber-400 text-xs">
+                            {marker.tileSize.width}×{marker.tileSize.height} tiles
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Remove button when editing */}
+                      {isEditingMarkers && (
+                        <button
+                          onClick={() => removeMarker(marker.id)}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors duration-200 z-10"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
+                
+                // Render traditional icon-based markers
                 return (
                   <div
                     key={marker.id}

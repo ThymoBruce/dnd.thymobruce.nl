@@ -43,11 +43,6 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     if (!backgroundImage) {
       ctx.fillStyle = '#1e293b'; // slate-800
       ctx.fillRect(0, 0, width, height);
-      
-      // Draw grid for blank maps
-      if (showGrid || !backgroundImage) {
-        drawGrid(ctx);
-      }
     }
 
     // Draw background image if provided
@@ -55,11 +50,12 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
       const img = new Image();
       img.onload = () => {
         ctx.drawImage(img, 0, 0, width, height);
-        if (showGrid) {
-          drawGrid(ctx);
-        }
+        drawGrid(ctx);
       };
       img.src = backgroundImage;
+    } else {
+      // Always draw grid
+      drawGrid(ctx);
     }
 
     function drawGrid(ctx: CanvasRenderingContext2D) {
