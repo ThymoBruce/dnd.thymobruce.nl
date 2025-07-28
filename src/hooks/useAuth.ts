@@ -15,10 +15,9 @@ const ensureUserProfile = async (user: User, retryCount = 0) => {
       .from('users')
       .select('id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 is "not found" error, which is expected if user doesn't exist
+    if (fetchError) {
       console.warn('Error checking user profile, retrying...', fetchError);
       // Retry after a short delay
       setTimeout(() => ensureUserProfile(user, retryCount + 1), 1000);
@@ -37,6 +36,12 @@ const ensureUserProfile = async (user: User, retryCount = 0) => {
         }]);
 
       if (insertError) {
+        // If it's a duplicate key error, the user was created by another process
+        if (insertError.code === '23505') {
+          console.log('User profile already exists (created by another process)');
+          return;
+        }
+        
         console.warn('Error creating user profile, retrying...', insertError);
         // Retry after a short delay
         setTimeout(() => ensureUserProfile(user, retryCount + 1), 1000);
