@@ -174,6 +174,26 @@ const Maps = () => {
     setMarkers(prev => [...prev, newMarker]);
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const blockData = e.dataTransfer.getData('application/json');
+    if (!blockData) return;
+
+    const block = JSON.parse(blockData);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    handleAddBuildingBlock(block, x, y);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+  };
+
   const getMarkerTypeInfo = (type: MapMarker['type']) => {
     return markerTypes.find(t => t.type === type) || markerTypes[0];
   };

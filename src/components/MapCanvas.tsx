@@ -6,6 +6,8 @@ interface MapCanvasProps {
   backgroundImage?: string;
   markers: any[];
   onCanvasClick?: (x: number, y: number) => void;
+  onDrop?: (e: React.DragEvent<HTMLCanvasElement>) => void;
+  onDragOver?: (e: React.DragEvent<HTMLCanvasElement>) => void;
   showGrid?: boolean;
   gridSize?: number;
   isEditing?: boolean;
@@ -17,12 +19,15 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
   backgroundImage,
   markers,
   onCanvasClick,
+  onDrop,
+  onDragOver,
   showGrid = false,
-  gridSize = 50,
+  gridSize = 25,
   isEditing = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,6 +43,11 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     if (!backgroundImage) {
       ctx.fillStyle = '#1e293b'; // slate-800
       ctx.fillRect(0, 0, width, height);
+      
+      // Draw grid for blank maps
+      if (showGrid || !backgroundImage) {
+        drawGrid(ctx);
+      }
     }
 
     // Draw background image if provided
@@ -45,17 +55,15 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
       const img = new Image();
       img.onload = () => {
         ctx.drawImage(img, 0, 0, width, height);
-        drawGrid();
+        if (showGrid) {
+          drawGrid(ctx);
+        }
       };
       img.src = backgroundImage;
-    } else {
-      drawGrid();
     }
 
-    function drawGrid() {
-      if (!showGrid || !ctx) return;
-
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)'; // slate-400 with opacity
+    function drawGrid(ctx: CanvasRenderingContext2D) {
+      ctx.strokeStyle = isDragOver ? 'rgba(34, 197, 94, 0.4)' : 'rgba(148, 163, 184, 0.2)'; // green when dragging over
       ctx.lineWidth = 1;
 
       // Draw vertical lines
@@ -74,7 +82,7 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
         ctx.stroke();
       }
     }
-  }, [width, height, backgroundImage, imageLoaded, showGrid, gridSize]);
+  }, [width, height, backgroundImage, imageLoaded, showGrid, gridSize, isDragOver]);
 
   useEffect(() => {
     if (backgroundImage) {
@@ -100,19 +108,56 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     onCanvasClick(x, y);
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (onDrop) {
+      onDrop(e);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+    if (onDragOver) {
+      onDragOver(e);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      onClick={handleClick}
-      className={`max-w-full max-h-full border border-slate-600 ${
-        isEditing ? 'cursor-crosshair' : 'cursor-default'
-      }`}
-      style={{
-        backgroundColor: backgroundImage ? 'transparent' : '#1e293b'
-      }}
-    />
+    <div className="relative">
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        onClick={handleClick}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        className={`max-w-full max-h-full border-2 transition-colors duration-200 ${
+          isDragOver 
+            ? 'border-green-500 shadow-lg shadow-green-500/20' 
+            : 'border-slate-600'
+        } ${isEditing ? 'cursor-crosshair' : 'cursor-default'}`}
+        style={{
+          backgroundColor: backgroundImage ? 'transparent' : '#1e293b'
+        }}
+      />
+      
+      {/* Drop Zone Indicator */}
+      {isDragOver && (
+        <div className="absolute inset-0 bg-green-500/10 border-2 border-green-500 border-dashed rounded-lg flex items-center justify-center pointer-events-none">
+          <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold">
+            Drop building block here
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

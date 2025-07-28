@@ -210,8 +210,8 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
         <h4 className="text-sm font-semibold text-slate-300 mb-2">How to Use:</h4>
         <ol className="text-xs text-slate-400 space-y-1">
           <li>1. Create a blank map or open existing map</li>
-          <li>2. Select a building block from the list</li>
-          <li>3. Click anywhere on the map to place it</li>
+          <li>2. Drag building blocks directly onto the map</li>
+          <li>3. Or select a block and click on the map</li>
           <li>4. Repeat to add more elements</li>
           <li>5. Save your map when finished</li>
         </ol>
@@ -219,13 +219,13 @@ const MapBuildingBlocks: React.FC<MapBuildingBlocksProps> = ({ onAddBlock, isAct
 
       {/* Quick Tips */}
       <div className="mt-4 p-3 bg-blue-900/20 rounded-lg border border-blue-500/30">
-        <h4 className="text-sm font-semibold text-blue-300 mb-2">💡 Map Building Tips:</h4>
+        <h4 className="text-sm font-semibold text-blue-300 mb-2">💡 Drag & Drop Tips:</h4>
         <ul className="text-xs text-slate-300 space-y-1">
-          <li>• Start with terrain (forests, mountains)</li>
-          <li>• Add natural features (rivers, lakes)</li>
-          <li>• Place settlements and structures</li>
-          <li>• Add landmarks and points of interest</li>
-          <li>• Include hazards for adventure hooks</li>
+          <li>• Drag blocks directly from the panel to the map</li>
+          <li>• Grid background helps with alignment</li>
+          <li>• Start with terrain, then add structures</li>
+          <li>• Use different categories for variety</li>
+          <li>• Combine blocks to create complex areas</li>
         </ul>
       </div>
     </div>
