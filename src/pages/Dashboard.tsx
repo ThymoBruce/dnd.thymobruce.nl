@@ -9,6 +9,9 @@ import { useMonsters } from '../hooks/useMonsters';
 import { useEncounters } from '../hooks/useEncounters';
 import { useInventory } from '../hooks/useInventory';
 import { useSessionNotes } from '../hooks/useSessionNotes';
+import { useLoreEntries } from '../hooks/useLoreEntries';
+import { useTimelineEvents } from '../hooks/useTimelineEvents';
+import { useUserTemplates } from '../hooks/useUserTemplates';
 import { Users, BookOpen, Sword, MapPin, UserCheck, Skull, ScrollText, Scroll, Swords, Package } from 'lucide-react';
 
 const Dashboard = () => {
@@ -22,6 +25,9 @@ const Dashboard = () => {
   const { encounters } = useEncounters();
   const { inventory } = useInventory();
   const { sessionNotes } = useSessionNotes();
+  const { loreEntries } = useLoreEntries();
+  const { timelineEvents } = useTimelineEvents();
+  const { templates, userContent } = useUserTemplates();
   
   // For now, we'll use the first active campaign or null
   const activeCampaign = campaigns.find(c => c.status === 'active') || null;
@@ -37,6 +43,10 @@ const Dashboard = () => {
     { label: 'Encounters', count: encounters.length, icon: Swords, color: 'bg-red-600' },
     { label: 'Inventory Items', count: inventory.length, icon: Package, color: 'bg-teal-600' },
     { label: 'Session Notes', count: sessionNotes.length, icon: ScrollText, color: 'bg-indigo-600' },
+    { label: 'Lore Entries', count: loreEntries.length, icon: BookOpen, color: 'bg-amber-600' },
+    { label: 'Timeline Events', count: timelineEvents.length, icon: ScrollText, color: 'bg-indigo-600' },
+    { label: 'Templates', count: templates.length, icon: ScrollText, color: 'bg-blue-600' },
+    { label: 'Custom Content', count: userContent.length, icon: ScrollText, color: 'bg-green-600' },
   ];
 
   return (

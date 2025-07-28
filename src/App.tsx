@@ -15,6 +15,10 @@ import Encounters from './pages/Encounters';
 import Inventory from './pages/Inventory';
 import SessionNotes from './pages/SessionNotes';
 import CampaignInvites from './pages/CampaignInvites';
+import LoreEntries from './pages/LoreEntries';
+import Timeline from './pages/Timeline';
+import InteractiveMaps from './pages/InteractiveMaps';
+import Templates from './pages/Templates';
 import { CampaignProvider } from './context/CampaignContext';
 
 function App() {
@@ -88,6 +92,10 @@ function App() {
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/session-notes" element={<SessionNotes />} />
               <Route path="/invites" element={<CampaignInvites />} />
+              <Route path="/lore" element={<LoreEntries />} />
+              <Route path="/timeline" element={<Timeline />} />
+              <Route path="/maps" element={<InteractiveMaps />} />
+              <Route path="/templates" element={<Templates />} />
             </Routes>
           </main>
         </div>

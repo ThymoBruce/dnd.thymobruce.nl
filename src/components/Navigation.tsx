@@ -22,7 +22,10 @@ import {
   Gamepad2,
   Settings,
   Swords,
-  Package
+  Package,
+  FileText,
+  Clock,
+  Map
 } from 'lucide-react';
 
 const Navigation = () => {
@@ -65,12 +68,23 @@ const Navigation = () => {
       label: 'World',
       icon: Gamepad2,
       items: [
+        { path: '/lore', label: 'World Lore', icon: BookOpen },
+        { path: '/timeline', label: 'Timeline', icon: Clock },
         { path: '/locations', label: 'Locations', icon: MapPin },
+        { path: '/maps', label: 'Interactive Maps', icon: Map },
         { path: '/npcs', label: 'NPCs', icon: UserCheck },
         { path: '/monsters', label: 'Monsters', icon: Skull },
         { path: '/items', label: 'Items', icon: Sword },
         { path: '/encounters', label: 'Encounters', icon: Swords },
         { path: '/inventory', label: 'Inventory', icon: Package }
+      ]
+    },
+    {
+      id: 'tools',
+      label: 'Tools',
+      icon: Settings,
+      items: [
+        { path: '/templates', label: 'Custom Templates', icon: FileText }
       ]
     }
   ];

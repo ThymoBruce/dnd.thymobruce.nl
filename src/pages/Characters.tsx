@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCharacters } from '../hooks/useCharacters';
 import { Plus, Users, Edit, Trash2, Eye, Sword, Shield, Heart } from 'lucide-react';
-import CharacterModal from '../components/CharacterModal';
+import EnhancedCharacterModal from '../components/EnhancedCharacterModal';
 import CharacterSelectionScreen from '../components/CharacterSelectionScreen';
 
 const Characters = () => {
@@ -170,7 +170,7 @@ const Characters = () => {
 
       {/* Character Modal */}
       {isModalOpen && (
-        <CharacterModal
+        <EnhancedCharacterModal
           character={editingCharacter}
           onClose={handleCloseModal}
         />
