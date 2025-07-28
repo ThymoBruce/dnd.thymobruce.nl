@@ -46,6 +46,26 @@ const ensureUserProfile = async (user: User, retryCount = 0) => {
       return;
     }
 
+    // Check if a user with the same email already exists
+    const { data: existingEmailUser, error: emailFetchError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', user.email || '')
+      .maybeSingle();
+
+    if (emailFetchError) {
+      console.warn('Error checking user profile by email:', emailFetchError);
+      globalProfileCreationInProgress = false;
+      return;
+    }
+
+    // If user with same email exists, consider profile ensured
+    if (existingEmailUser) {
+      profileCreationCache.set(user.id, true);
+      globalProfileCreationInProgress = false;
+      return;
+    }
+
     // Try to create new user profile
     try {
       const { error: insertError } = await supabase
