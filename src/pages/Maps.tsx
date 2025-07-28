@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useMaps } from '../hooks/useMaps';
 import { Plus, Map, Trash2, Pencil, MapPin, Eye, EyeOff, Save, X, Grid, Zap } from 'lucide-react';
+import MapCanvas from '../components/MapCanvas';
 import MapBuildingBlocks from '../components/MapBuildingBlocks';
 
 interface MapMarker {
