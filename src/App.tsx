@@ -6,6 +6,7 @@ import Characters from './pages/Characters';
 import Campaigns from './pages/Campaigns';
 import Items from './pages/Items';
 import Locations from './pages/Locations';
+import Maps from './pages/Maps';
 import NPCs from './pages/NPCs';
 import Monsters from './pages/Monsters';
 import SessionNotes from './pages/SessionNotes';
@@ -25,6 +26,7 @@ function App() {
               <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/items" element={<Items />} />
               <Route path="/locations" element={<Locations />} />
+              <Route path="/maps" element={<Maps />} />
               <Route path="/npcs" element={<NPCs />} />
               <Route path="/monsters" element={<Monsters />} />
               <Route path="/session-notes" element={<SessionNotes />} />

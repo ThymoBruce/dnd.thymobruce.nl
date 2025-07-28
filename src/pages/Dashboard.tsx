@@ -6,6 +6,7 @@ import { useLocations } from '../hooks/useLocations';
 import { useNPCs } from '../hooks/useNPCs';
 import { useMonsters } from '../hooks/useMonsters';
 import { useSessionNotes } from '../hooks/useSessionNotes';
+import { useMaps } from '../hooks/useMaps';
 import { Users, BookOpen, Sword, MapPin, UserCheck, Skull, ScrollText } from 'lucide-react';
 
 const Dashboard = () => {
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const { npcs } = useNPCs();
   const { monsters } = useMonsters();
   const { sessionNotes } = useSessionNotes();
+  const { maps } = useMaps();
   
   // For now, we'll use the first active campaign or null
   const activeCampaign = campaigns.find(c => c.status === 'active') || null;
@@ -25,6 +27,7 @@ const Dashboard = () => {
     { label: 'Campaigns', count: campaigns.length, icon: BookOpen, color: 'bg-purple-600' },
     { label: 'Items', count: items.length, icon: Sword, color: 'bg-red-600' },
     { label: 'Locations', count: locations.length, icon: MapPin, color: 'bg-green-600' },
+    { label: 'Maps', count: maps.length, icon: MapPin, color: 'bg-teal-600' },
     { label: 'NPCs', count: npcs.length, icon: UserCheck, color: 'bg-yellow-600' },
     { label: 'Monsters', count: monsters.length, icon: Skull, color: 'bg-purple-600' },
     { label: 'Session Notes', count: sessionNotes.length, icon: ScrollText, color: 'bg-indigo-600' },

@@ -10,6 +10,7 @@ import {
   ScrollText,
   Skull,
   Shield,
+  Map,
   Menu,
   X
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const Navigation = () => {
     { path: '/campaigns', label: 'Campaigns', icon: BookOpen },
     { path: '/items', label: 'Items', icon: Sword },
     { path: '/locations', label: 'Locations', icon: MapPin },
+    { path: '/maps', label: 'Maps', icon: Map },
     { path: '/npcs', label: 'NPCs', icon: UserCheck },
     { path: '/monsters', label: 'Monsters', icon: Skull },
     { path: '/session-notes', label: 'Session Notes', icon: ScrollText },
