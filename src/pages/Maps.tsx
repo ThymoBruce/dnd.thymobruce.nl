@@ -25,6 +25,7 @@ const Maps = () => {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiMapName, setAiMapName] = useState('');
   const [showBuildingBlocks, setShowBuildingBlocks] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -215,6 +216,12 @@ const Maps = () => {
 
   const handleDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
   };
 
   const getMarkerTypeInfo = (type: MapMarker['type']) => {
