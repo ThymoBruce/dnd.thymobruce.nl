@@ -6,8 +6,10 @@ import { useItems } from '../hooks/useItems';
 import { useLocations } from '../hooks/useLocations';
 import { useNPCs } from '../hooks/useNPCs';
 import { useMonsters } from '../hooks/useMonsters';
+import { useEncounters } from '../hooks/useEncounters';
+import { useInventory } from '../hooks/useInventory';
 import { useSessionNotes } from '../hooks/useSessionNotes';
-import { Users, BookOpen, Sword, MapPin, UserCheck, Skull, ScrollText, Scroll } from 'lucide-react';
+import { Users, BookOpen, Sword, MapPin, UserCheck, Skull, ScrollText, Scroll, Swords, Package } from 'lucide-react';
 
 const Dashboard = () => {
   const { characters } = useCharacters();
@@ -17,6 +19,8 @@ const Dashboard = () => {
   const { locations } = useLocations();
   const { npcs } = useNPCs();
   const { monsters } = useMonsters();
+  const { encounters } = useEncounters();
+  const { inventory } = useInventory();
   const { sessionNotes } = useSessionNotes();
   
   // For now, we'll use the first active campaign or null
@@ -30,6 +34,8 @@ const Dashboard = () => {
     { label: 'Locations', count: locations.length, icon: MapPin, color: 'bg-green-600' },
     { label: 'NPCs', count: npcs.length, icon: UserCheck, color: 'bg-yellow-600' },
     { label: 'Monsters', count: monsters.length, icon: Skull, color: 'bg-purple-600' },
+    { label: 'Encounters', count: encounters.length, icon: Swords, color: 'bg-red-600' },
+    { label: 'Inventory Items', count: inventory.length, icon: Package, color: 'bg-teal-600' },
     { label: 'Session Notes', count: sessionNotes.length, icon: ScrollText, color: 'bg-indigo-600' },
   ];
 

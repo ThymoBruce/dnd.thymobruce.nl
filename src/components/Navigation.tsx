@@ -20,7 +20,9 @@ import {
   Mail,
   ChevronDown,
   Gamepad2,
-  Settings
+  Settings,
+  Swords,
+  Package
 } from 'lucide-react';
 
 const Navigation = () => {
@@ -66,7 +68,9 @@ const Navigation = () => {
         { path: '/locations', label: 'Locations', icon: MapPin },
         { path: '/npcs', label: 'NPCs', icon: UserCheck },
         { path: '/monsters', label: 'Monsters', icon: Skull },
-        { path: '/items', label: 'Items', icon: Sword }
+        { path: '/items', label: 'Items', icon: Sword },
+        { path: '/encounters', label: 'Encounters', icon: Swords },
+        { path: '/inventory', label: 'Inventory', icon: Package }
       ]
     }
   ];

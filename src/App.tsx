@@ -11,6 +11,8 @@ import Items from './pages/Items';
 import Locations from './pages/Locations';
 import NPCs from './pages/NPCs';
 import Monsters from './pages/Monsters';
+import Encounters from './pages/Encounters';
+import Inventory from './pages/Inventory';
 import SessionNotes from './pages/SessionNotes';
 import CampaignInvites from './pages/CampaignInvites';
 import { CampaignProvider } from './context/CampaignContext';
@@ -82,6 +84,8 @@ function App() {
               <Route path="/locations" element={<Locations />} />
               <Route path="/npcs" element={<NPCs />} />
               <Route path="/monsters" element={<Monsters />} />
+              <Route path="/encounters" element={<Encounters />} />
+              <Route path="/inventory" element={<Inventory />} />
               <Route path="/session-notes" element={<SessionNotes />} />
               <Route path="/invites" element={<CampaignInvites />} />
             </Routes>
