@@ -95,6 +95,23 @@ export interface Location {
   created_at?: string;
 }
 
+export interface Monster {
+  id: string;
+  user_id?: string;
+  name: string;
+  type: string;
+  size: string;
+  cr: string;
+  ac: number;
+  hp: number;
+  speed: string;
+  environment?: string;
+  abilities?: string[];
+  resistances?: string[];
+  vulnerabilities?: string[];
+  created_at?: string;
+}
+
 export interface SessionNote {
   id: string;
   user_id?: string;

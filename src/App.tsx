@@ -7,6 +7,7 @@ import Campaigns from './pages/Campaigns';
 import Items from './pages/Items';
 import Locations from './pages/Locations';
 import NPCs from './pages/NPCs';
+import Monsters from './pages/Monsters';
 import SessionNotes from './pages/SessionNotes';
 import { CampaignProvider } from './context/CampaignContext';
 
@@ -25,6 +26,7 @@ function App() {
               <Route path="/items" element={<Items />} />
               <Route path="/locations" element={<Locations />} />
               <Route path="/npcs" element={<NPCs />} />
+              <Route path="/monsters" element={<Monsters />} />
               <Route path="/session-notes" element={<SessionNotes />} />
             </Routes>
           </main>

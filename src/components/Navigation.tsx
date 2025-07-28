@@ -8,6 +8,7 @@ import {
   MapPin, 
   UserCheck, 
   ScrollText,
+  Skull,
   Shield,
   Menu,
   X
@@ -24,6 +25,7 @@ const Navigation = () => {
     { path: '/items', label: 'Items', icon: Sword },
     { path: '/locations', label: 'Locations', icon: MapPin },
     { path: '/npcs', label: 'NPCs', icon: UserCheck },
+    { path: '/monsters', label: 'Monsters', icon: Skull },
     { path: '/session-notes', label: 'Session Notes', icon: ScrollText },
   ];
 
