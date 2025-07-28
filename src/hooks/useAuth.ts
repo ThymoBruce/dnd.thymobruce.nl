@@ -100,9 +100,6 @@ export const useAuth = () => {
         
         console.log('Auth state change:', event, session?.user?.id);
         
-        try {
-          const currentUser = session?.user ?? null;
-        }
         const currentUser = session?.user ?? null;
         
         if (mounted) {
