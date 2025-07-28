@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useMaps } from '../hooks/useMaps';
 import { Plus, Map, Trash2, Pencil, MapPin, Eye, EyeOff, Save, X } from 'lucide-react';
+import MapBuildingBlocks from '../components/MapBuildingBlocks';
 
 interface MapMarker {
   id: string;
@@ -23,6 +24,7 @@ const Maps = () => {
   const [showMarkers, setShowMarkers] = useState(true);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiMapName, setAiMapName] = useState('');
+  const [showBuildingBlocks, setShowBuildingBlocks] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -160,6 +162,18 @@ const Maps = () => {
     setMarkers(prev => prev.filter(m => m.id !== markerId));
   };
 
+  const handleAddBuildingBlock = (block: any, x: number, y: number) => {
+    const newMarker: MapMarker = {
+      id: Date.now().toString(),
+      x,
+      y,
+      label: block.name,
+      type: 'poi', // Default to POI for building blocks
+      description: block.description
+    };
+    setMarkers(prev => [...prev, newMarker]);
+  };
+
   const getMarkerTypeInfo = (type: MapMarker['type']) => {
     return markerTypes.find(t => t.type === type) || markerTypes[0];
   };
@@ -238,6 +252,15 @@ const Maps = () => {
               </button>
             )}
             <button
+              onClick={() => setShowBuildingBlocks(!showBuildingBlocks)}
+              className={`px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 ${
+                showBuildingBlocks ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-600 hover:bg-slate-700'
+              } text-white`}
+            >
+              <MapPin className="h-4 w-4" />
+              <span>Building Blocks</span>
+            </button>
+            <button
               onClick={() => setViewingMap(null)}
               className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors duration-200"
             >
@@ -247,7 +270,7 @@ const Maps = () => {
         </div>
 
         {/* Map Canvas */}
-        <div className="flex-1 relative overflow-hidden">
+        <div className={`flex-1 relative overflow-hidden ${showBuildingBlocks ? 'flex' : ''}`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative max-w-full max-h-full">
               <canvas
@@ -307,6 +330,12 @@ const Maps = () => {
               })}
             </div>
           </div>
+          
+          {/* Building Blocks Panel */}
+          <MapBuildingBlocks
+            onAddBlock={handleAddBuildingBlock}
+            isActive={showBuildingBlocks}
+          />
         </div>
 
         {/* Instructions */}
