@@ -140,6 +140,27 @@ const Navigation = () => {
             </div>
           {/* Mobile Navigation */}
           {user && isMobileMenuOpen && (
+            <div className="lg:hidden border-t border-slate-700 py-4">
+              {navItems.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    location.pathname === path
+                      ? 'bg-amber-600 text-white shadow-lg'
+                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+          </div>
+        )}
+      </div>
       </nav>
 
       {/* Auth Modal */}
@@ -148,3 +169,7 @@ const Navigation = () => {
         onClose={() => setIsAuthModalOpen(false)}
       />
     </>
+  );
+};
+
+export default Navigation;
