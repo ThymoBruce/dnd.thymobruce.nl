@@ -47,25 +47,21 @@ export const useCharacters = () => {
         throw new Error('User not authenticated');
       }
 
-      // Ensure user exists in public.users table
-      const { data: existingUser, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (checkError && checkError.code === 'PGRST116') {
-        // User doesn't exist, create them
+      // Try to ensure user exists in public.users table
+      try {
         await supabase
           .from('users')
-          .insert([{
+          .upsert([{
             id: user.id,
             email: user.email || '',
             name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
             role: 'player',
             avatar: user.user_metadata?.avatar_url
-          }]);
+          }], { onConflict: 'id' });
+      } catch (userCreateError) {
+        console.warn('Could not create user record:', userCreateError);
       }
+
       const { data, error } = await supabase
         .from('characters')
         .insert([{
@@ -127,25 +123,21 @@ export const useCharacters = () => {
         throw new Error('User not authenticated');
       }
 
-      // Ensure user exists in public.users table
-      const { data: existingUser, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (checkError && checkError.code === 'PGRST116') {
-        // User doesn't exist, create them
+      // Try to ensure user exists in public.users table
+      try {
         await supabase
           .from('users')
-          .insert([{
+          .upsert([{
             id: user.id,
             email: user.email || '',
             name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
             role: 'player',
             avatar: user.user_metadata?.avatar_url
-          }]);
+          }], { onConflict: 'id' });
+      } catch (userCreateError) {
+        console.warn('Could not create user record:', userCreateError);
       }
+
       const { data, error } = await supabase
         .from('characters')
         .update({
