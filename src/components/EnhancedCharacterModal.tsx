@@ -393,29 +393,6 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                 </div>
               </div>
 
-                  <div className="space-y-2">
-                    {formData.personality_traits.map((trait, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={trait}
-                          onChange={(e) => handleArrayFieldChange('personality_traits', index, e.target.value)}
-                          className="flex-1 bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                          placeholder="Personality trait..."
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('personality_traits', index)}
-                          className="text-red-400 hover:text-red-300 p-1"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
                 <label className="flex items-center space-x-2">
                   <input
@@ -577,25 +554,35 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                         className="w-full bg-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select type...</option>
-                  <div className="space-y-2">
-                    {formData.languages.map((language, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={language}
-                          onChange={(e) => handleArrayFieldChange('languages', index, e.target.value)}
-                          className="flex-1 bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                          placeholder="Language name..."
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('languages', index)}
-                          className="text-red-400 hover:text-red-300 p-1"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
+                        {relationshipTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        Related Entity ID
+                      </label>
+                      <input
+                        type="text"
+                        value={newRelationship.entity2_id}
+                        onChange={(e) => setNewRelationship(prev => ({ ...prev, entity2_id: e.target.value }))}
+                        className="w-full bg-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter entity ID..."
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      value={newRelationship.description}
+                      onChange={(e) => setNewRelationship(prev => ({ ...prev, description: e.target.value }))}
+                      rows={2}
+                      className="w-full bg-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Describe the relationship..."
+                    />
                   </div>
                   <button
                     type="button"
@@ -614,19 +601,19 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                     characterRelationships.map(rel => (
                       <div key={rel.id} className="bg-slate-700 rounded-lg p-4">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                        <div className="flex-1">
-                          <h5 className="text-white font-medium">{rel.relationship_type}</h5>
-                          {rel.description && (
-                            <p className="text-slate-300 text-sm">{rel.description}</p>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => deleteRelationship(rel.id)}
-                          className="text-red-400 hover:text-red-300 self-start sm:self-center"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          <div className="flex-1">
+                            <h5 className="text-white font-medium">{rel.relationship_type}</h5>
+                            {rel.description && (
+                              <p className="text-slate-300 text-sm">{rel.description}</p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => deleteRelationship(rel.id)}
+                            className="text-red-400 hover:text-red-300 self-start sm:self-center"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                     ))
