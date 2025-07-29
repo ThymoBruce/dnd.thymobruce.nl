@@ -20,6 +20,33 @@ import Timeline from './pages/Timeline';
 import InteractiveMaps from './pages/InteractiveMaps';
 import Templates from './pages/Templates';
 import { CampaignProvider } from './context/CampaignContext';
+import { 
+  Home, 
+  Users, 
+  BookOpen, 
+  Sword, 
+  MapPin, 
+  UserCheck, 
+  ScrollText,
+  Skull,
+  Shield,
+  Scroll,
+  Menu,
+  X,
+  LogIn,
+  LogOut,
+  Mail,
+  ChevronDown,
+  Gamepad2,
+  Settings,
+  Swords,
+  Package,
+  FileText,
+  Clock,
+  Map,
+  Heart,
+  CheckCircle
+} from 'lucide-react';
 
 function App() {
   const { user, loading } = useAuth();
