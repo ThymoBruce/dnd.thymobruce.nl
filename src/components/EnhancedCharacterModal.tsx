@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCharacters } from '../hooks/useCharacters';
 import { useRelationships } from '../hooks/useRelationships';
-import { X, Plus, Trash2, Users } from 'lucide-react';
+import { X, Plus, Trash2, Users, Upload, Camera } from 'lucide-react';
 
 interface EnhancedCharacterModalProps {
   character?: any;
@@ -53,6 +53,9 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
     description: ''
   });
 
+  const [imageUpload, setImageUpload] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+
   const relationshipTypes = [
     'Family', 'Friend', 'Enemy', 'Ally', 'Mentor', 'Student', 'Rival', 
     'Love Interest', 'Business Partner', 'Guild Member', 'Servant', 'Master'
@@ -91,8 +94,23 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
         is_private: character.is_private !== undefined ? character.is_private : true,
         is_player_visible: character.is_player_visible !== undefined ? character.is_player_visible : false
       });
+      setImagePreview(character.portrait_url || '');
     }
   }, [character]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageUpload(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setFormData(prev => ({ ...prev, portrait_url: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,9 +176,9 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-slate-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">
             {isEditing ? 'Edit Character' : 'Create Character'}
           </h2>
           <button
@@ -172,10 +190,10 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-slate-700 rounded-lg p-1 mb-6">
+        <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 bg-slate-700 rounded-lg p-1 mb-6">
           <button
             onClick={() => setActiveTab('basic')}
-            className={`flex-1 py-2 px-4 rounded-lg transition-colors duration-200 ${
+            className={`flex-1 py-2 px-2 sm:px-4 rounded-lg transition-colors duration-200 text-sm sm:text-base ${
               activeTab === 'basic' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -183,7 +201,7 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={`flex-1 py-2 px-4 rounded-lg transition-colors duration-200 ${
+            className={`flex-1 py-2 px-2 sm:px-4 rounded-lg transition-colors duration-200 text-sm sm:text-base ${
               activeTab === 'details' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -192,7 +210,7 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
           {isEditing && (
             <button
               onClick={() => setActiveTab('relationships')}
-              className={`flex-1 py-2 px-4 rounded-lg transition-colors duration-200 ${
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-lg transition-colors duration-200 text-sm sm:text-base ${
                 activeTab === 'relationships' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -220,15 +238,50 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Portrait URL
+                    Character Portrait
                   </label>
-                  <input
-                    type="url"
-                    value={formData.portrait_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, portrait_url: e.target.value }))}
-                    className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://example.com/portrait.jpg"
-                  />
+                  <div className="space-y-3">
+                    {/* Image Preview */}
+                    {imagePreview && (
+                      <div className="flex justify-center">
+                        <img
+                          src={imagePreview}
+                          alt="Character portrait preview"
+                          className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-full border-4 border-blue-500"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Upload Options */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-slate-400 mb-1">Upload Image</label>
+                        <label className="flex items-center justify-center w-full bg-slate-700 hover:bg-slate-600 text-white rounded-lg px-3 py-2 cursor-pointer transition-colors duration-200">
+                          <Upload className="h-4 w-4 mr-2" />
+                          <span className="text-sm">Choose File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-slate-400 mb-1">Or use URL</label>
+                        <input
+                          type="url"
+                          value={formData.portrait_url}
+                          onChange={(e) => {
+                            setFormData(prev => ({ ...prev, portrait_url: e.target.value }));
+                            setImagePreview(e.target.value);
+                          }}
+                          className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="Image URL"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -340,28 +393,30 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Ability Scores</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map((stat) => (
-                    <div key={stat}>
-                      <label className="block text-sm font-medium text-slate-300 mb-2 capitalize">
-                        {stat}
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="30"
-                        value={formData[stat as keyof typeof formData] as number}
-                        onChange={(e) => setFormData(prev => ({ ...prev, [stat]: parseInt(e.target.value) || 10 }))}
-                        className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  ))}
+                  <div className="space-y-2">
+                    {formData.personality_traits.map((trait, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={trait}
+                          onChange={(e) => handleArrayFieldChange('personality_traits', index, e.target.value)}
+                          className="flex-1 bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                          placeholder="Personality trait..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayField('personality_traits', index)}
+                          className="text-red-400 hover:text-red-300 p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-6">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -511,7 +566,7 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                 {/* Add New Relationship */}
                 <div className="bg-slate-700 rounded-lg p-4">
                   <h4 className="text-md font-semibold text-white mb-3">Add New Relationship</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">
                         Relationship Type
@@ -522,28 +577,30 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                         className="w-full bg-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select type...</option>
-                        {relationshipTypes.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
-                        Description
-                      </label>
-                      <input
-                        type="text"
-                        value={newRelationship.description}
-                        onChange={(e) => setNewRelationship(prev => ({ ...prev, description: e.target.value }))}
-                        className="w-full bg-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Describe the relationship..."
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    {formData.languages.map((language, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={language}
+                          onChange={(e) => handleArrayFieldChange('languages', index, e.target.value)}
+                          className="flex-1 bg-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                          placeholder="Language name..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayField('languages', index)}
+                          className="text-red-400 hover:text-red-300 p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                   <button
                     type="button"
                     onClick={handleAddRelationship}
-                    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                    className="mt-3 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                   >
                     Add Relationship
                   </button>
@@ -555,8 +612,9 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                     <p className="text-slate-400">No relationships defined yet.</p>
                   ) : (
                     characterRelationships.map(rel => (
-                      <div key={rel.id} className="bg-slate-700 rounded-lg p-4 flex items-center justify-between">
-                        <div>
+                      <div key={rel.id} className="bg-slate-700 rounded-lg p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <div className="flex-1">
                           <h5 className="text-white font-medium">{rel.relationship_type}</h5>
                           {rel.description && (
                             <p className="text-slate-300 text-sm">{rel.description}</p>
@@ -565,10 +623,11 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
                         <button
                           type="button"
                           onClick={() => deleteRelationship(rel.id)}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-red-400 hover:text-red-300 self-start sm:self-center"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -577,17 +636,17 @@ const EnhancedCharacterModal: React.FC<EnhancedCharacterModalProps> = ({ charact
             </>
           )}
 
-          <div className="flex space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors duration-200"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors duration-200"
             >
               {isEditing ? 'Update Character' : 'Create Character'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-2 rounded-lg transition-colors duration-200"
+              className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-2 px-4 rounded-lg transition-colors duration-200"
             >
               Cancel
             </button>
